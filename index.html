@@ -1,0 +1,1394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#E8ECF0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Home board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- tokens ---------- */
+:root{
+  color-scheme: light;
+  --bg:#E8ECF0; --panel:#FFFFFF; --ink:#16212B; --muted:#5B6877; --line:#E1E6EC;
+  --accent:#0E6A6A; --on-accent:#FFFFFF; --sel:#E2F0EF; --warn:#B03A24;
+  --font:'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+.c-teal{--cb:#CFEBE8;--cf:#0A4B4B;--cs:#0E8A86}
+.c-plum{--cb:#EBD3E4;--cf:#5E1F4B;--cs:#9A3C7C}
+.c-amber{--cb:#F6E2B8;--cf:#6B4700;--cs:#C98A00}
+.c-blue{--cb:#D3E1F7;--cf:#173F7A;--cs:#2D6BCB}
+.c-rose{--cb:#F7D2D2;--cf:#7A1F2B;--cs:#C8404F}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#0E151C; --panel:#17212B; --ink:#E8EEF4; --muted:#93A1B0; --line:#263341;
+    --accent:#52C5BF; --on-accent:#08201F; --sel:#1D3337; --warn:#F2917A;
+  }
+  .c-teal{--cb:#1B4442;--cf:#BDEEEA;--cs:#52C5BF}
+  .c-plum{--cb:#43243A;--cf:#F1CCE6;--cs:#D07DB5}
+  .c-amber{--cb:#4A3A12;--cf:#F8E1A8;--cs:#E0A93A}
+  .c-blue{--cb:#1E3556;--cf:#CFE0FA;--cs:#6F9BE6}
+  .c-rose{--cb:#4C2229;--cf:#F8CDD2;--cs:#E57883}
+}
+
+/* ---------- base ---------- */
+*{box-sizing:border-box}
+[hidden]{display:none !important}
+html{font-size:clamp(15px, 1.15vmin + 10px, 22px)}
+body{margin:0;height:100dvh;background:var(--bg);color:var(--ink);font-family:var(--font);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;border:0;background:none;padding:0}
+h1,h2,h3,p{margin:0}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* ---------- layout ---------- */
+.board{height:100%;padding:14px;display:grid;gap:12px;
+  grid-template-columns:repeat(10,minmax(0,1fr));
+  grid-template-rows:minmax(0,1fr) minmax(0,.95fr) minmax(0,.72fr) auto}
+.panel{background:var(--panel);border-radius:22px;padding:14px 16px;min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.cal{grid-column:1/7;grid-row:1/3}
+.day{grid-column:7/11;grid-row:1}
+.media{grid-column:7/11;grid-row:2}
+.chores{grid-column:1/6;grid-row:3}
+.shop{grid-column:6/11;grid-row:3}
+.home{grid-column:1/11;grid-row:4}
+
+@media (orientation:landscape){
+  .board{grid-template-columns:repeat(12,minmax(0,1fr));grid-template-rows:minmax(0,1.15fr) minmax(0,1fr) auto}
+  .cal{grid-column:1/7;grid-row:1/3}
+  .day{grid-column:7/10;grid-row:1}
+  .media{grid-column:10/13;grid-row:1}
+  .chores{grid-column:7/10;grid-row:2}
+  .shop{grid-column:10/13;grid-row:2}
+  .home{grid-column:1/13;grid-row:3}
+}
+@media (max-width:640px){
+  body{height:auto;overflow:auto}
+  .board{height:auto;display:flex;flex-direction:column}
+  .panel{min-height:20rem}
+  .home{min-height:0}
+}
+
+/* ---------- shared bits ---------- */
+.panel-head{display:flex;align-items:center;justify-content:space-between;gap:.5rem;margin-bottom:.6rem}
+.panel-head h2{font-size:1.15rem;font-weight:650;letter-spacing:-.01em}
+.scroll{overflow:auto;min-height:0;flex:1}
+.fab{width:2.7rem;height:2.7rem;border-radius:50%;background:var(--accent);color:var(--on-accent);font-size:1.6rem;line-height:1;display:grid;place-items:center;flex:none}
+.icon{width:2.7rem;height:2.7rem;border-radius:50%;border:1px solid var(--line);font-size:1.5rem;line-height:1;display:grid;place-items:center}
+.pill{height:2.7rem;padding:0 1rem;border-radius:999px;border:1px solid var(--line);font-weight:600}
+.link{color:var(--accent);font-weight:600;padding:.4rem .2rem;min-height:2.2rem}
+.hint,.empty{color:var(--muted);font-size:.85rem}
+.empty{padding:.5rem 0}
+.err{color:var(--warn);font-size:.9rem}
+
+/* ---------- calendar ---------- */
+.cal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:.4rem .6rem;flex-wrap:wrap;margin-bottom:.4rem}
+.cal-head h1{font-size:1.7rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.sync{font-size:.8rem;color:var(--muted);display:flex;align-items:center;gap:.3rem;flex-wrap:wrap;margin-top:.15rem}
+.tools{display:flex;align-items:center;gap:.4rem}
+.dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.8rem;font-weight:600;color:var(--muted);padding-bottom:.35rem}
+.grid{flex:1;min-height:0;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:repeat(6,minmax(0,1fr));gap:1px;background:var(--line);border-radius:12px;overflow:hidden}
+.cell{background:var(--panel);display:flex;flex-direction:column;align-items:stretch;gap:2px;padding:4px;overflow:hidden;min-height:0;text-align:left}
+.cell.out{background:color-mix(in srgb, var(--panel) 70%, var(--bg))}
+.cell.out .num{color:var(--muted)}
+.cell.sel{background:var(--sel)}
+.num{align-self:flex-start;width:1.7rem;height:1.7rem;border-radius:50%;display:grid;place-items:center;font-size:.85rem;font-weight:600;flex:none}
+.cell.today .num{background:var(--accent);color:var(--on-accent)}
+.ev{display:block;font-size:.72rem;line-height:1.35;padding:0 5px;border-radius:5px;background:var(--cb);color:var(--cf);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500}
+.more{font-size:.7rem;color:var(--muted);padding-left:5px}
+
+/* ---------- agenda ---------- */
+.day h2{font-size:1.5rem;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.day .sub{color:var(--muted);font-size:.9rem;margin-top:.1rem}
+.group-title{font-size:.85rem;font-weight:600;color:var(--muted);margin:.8rem 0 .35rem}
+.item{display:grid;grid-template-columns:5px 1fr;gap:.6rem;width:100%;text-align:left;padding:.5rem .7rem .5rem .5rem;border-radius:12px;background:var(--cb);color:var(--cf);margin-bottom:.35rem}
+.item::before{content:"";border-radius:3px;background:var(--cs)}
+.item .t{font-weight:600;font-size:.95rem;line-height:1.25}
+.item .w{font-size:.8rem;opacity:.85}
+.item.ro{cursor:default}
+
+/* ---------- home tile ---------- */
+.home h2{font-size:1.15rem;font-weight:650;margin-bottom:.6rem}
+.tile{width:100%;text-align:left;padding:.8rem .9rem;border-radius:14px;background:var(--bg);display:flex;flex-direction:column;gap:.15rem;min-height:4.2rem}
+.tile .n{font-weight:600}
+.tile .s{font-size:.85rem;color:var(--muted)}
+.tile[aria-pressed="true"]{background:var(--accent);color:var(--on-accent)}
+.tile[aria-pressed="true"] .s{color:var(--on-accent);opacity:.85}
+.home .hint{margin-top:.5rem}
+
+/* ---------- lists ---------- */
+.row{display:flex;align-items:flex-start;gap:.7rem;padding:.45rem 0;min-height:2.8rem}
+.check{width:1.7rem;height:1.7rem;border:2px solid var(--muted);border-radius:50%;flex:none;display:grid;place-items:center;font-size:1rem;color:var(--on-accent);margin-top:.1rem}
+.check.sq{border-radius:7px}
+.check[aria-checked="true"]{background:var(--accent);border-color:var(--accent)}
+.row .body{flex:1;text-align:left;min-width:0}
+.row .txt{display:block;font-size:1rem;line-height:1.3}
+.row .due{display:block;font-size:.8rem;color:var(--muted);margin-top:.1rem}
+.row .due.late{color:var(--warn);font-weight:600}
+.row.done .txt{text-decoration:line-through;color:var(--muted)}
+.rm{width:2.2rem;height:2.2rem;border-radius:50%;color:var(--muted);font-size:1.2rem;flex:none}
+.donebar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);margin-top:.4rem;padding-top:.3rem}
+.donebar .link{white-space:nowrap}
+.add-line{display:flex;gap:.5rem;margin-bottom:.5rem}
+.add-line input{flex:1}
+.add-line .primary{padding:0 1rem}
+
+/* ---------- forms and dialogs ---------- */
+input[type=text],input[type=date],input[type=time],input[type=datetime-local]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:.65rem .75rem;min-height:2.7rem}
+dialog{border:0;border-radius:20px;padding:0;background:var(--panel);color:var(--ink);width:min(26rem,92vw);font-family:var(--font)}
+dialog::backdrop{background:rgba(10,18,26,.55)}
+.dlg{padding:1.2rem;display:flex;flex-direction:column;gap:.8rem}
+.dlg h3{font-size:1.25rem;font-weight:700}
+.dlg label{display:flex;flex-direction:column;gap:.3rem;font-size:.85rem;font-weight:600;color:var(--muted)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
+.swatches{display:flex;gap:.7rem;padding:.2rem}
+.swatch{width:2.2rem;height:2.2rem;border-radius:50%;background:var(--cs)}
+.swatch[aria-checked="true"]{outline:3px solid var(--ink);outline-offset:2px}
+.actions{display:flex;align-items:center;gap:.5rem;margin-top:.2rem}
+.grow{flex:1}
+.primary,.secondary,.danger{min-height:2.7rem;padding:0 1.1rem;border-radius:999px;font-weight:600}
+.primary{background:var(--accent);color:var(--on-accent)}
+.secondary{border:1px solid var(--line)}
+.danger{color:var(--warn);padding:0 .5rem}
+
+.toast{position:fixed;left:50%;bottom:1.2rem;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:.7rem 1.1rem;border-radius:12px;font-size:.9rem;max-width:90vw;z-index:30}
+
+/* ---------- music, settings, photo frame ---------- */
+button:disabled{opacity:.45;cursor:default}
+.home{overflow:hidden}
+.gear{width:2.4rem;height:2.4rem;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted);flex:none}
+.strip{flex-direction:row;align-items:center;gap:1rem;padding:.6rem 1rem;flex-wrap:wrap}
+.strip h2{margin:0;font-size:1.15rem;font-weight:650}
+.strip .tile{width:auto;flex:0 1 17rem;min-height:0;flex-direction:row;align-items:center;justify-content:space-between;gap:.8rem;padding:.55rem .9rem}
+.strip .hint{flex:1;min-width:8rem;margin:0}
+.strip .gear{margin-left:auto}
+.art{width:3.8rem;height:3.8rem;border-radius:10px;background:var(--line) center/cover no-repeat;flex:none}
+.m-title{font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.m-sub{font-size:.85rem;color:var(--muted);line-height:1.3}
+.bar{height:4px;border-radius:2px;background:color-mix(in srgb, var(--muted) 30%, transparent);overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--accent)}
+.m-btn{width:2.7rem;height:2.7rem;border-radius:50%;display:grid;place-items:center}
+.m-btn svg{width:1.3rem;height:1.3rem;fill:currentColor}
+select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:.55rem .6rem;min-height:2.7rem}
+
+/* photo and music widget */
+.media{padding:0;position:relative;background:#1a232d;color:#fff}
+.ph{position:absolute;inset:0}
+.pimg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity 1.2s ease}
+.pimg.on{opacity:1}
+.ph-hit{position:absolute;inset:0;z-index:1;width:100%;height:100%}
+.ph-empty{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:1.5rem 1.5rem 5rem;color:#cfd8e3;font-size:.95rem}
+.ph-bar{position:absolute;left:0;right:0;bottom:0;z-index:2;padding:2.4rem .8rem .8rem;background:linear-gradient(to top, rgba(8,14,20,.88), rgba(8,14,20,0));display:flex;flex-direction:column;gap:.5rem}
+.mi-on,.mi-off{display:flex;align-items:center;gap:.7rem;min-width:0}
+.mi-text{flex:1;min-width:0}
+.ph-bar .m-title{color:#fff}
+.ph-bar .m-sub{color:#d3dbe4;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ph-bar .art{width:2.8rem;height:2.8rem;border-radius:8px}
+.mi-on{flex-wrap:wrap;row-gap:.3rem}
+.mi-ctrl{display:flex;align-items:center;justify-content:space-around;flex:1 1 100%}
+.ph-bar .m-btn{width:2.5rem;height:2.5rem;color:#fff}
+.ph-bar .m-btn.main{width:2.8rem;height:2.8rem;background:#fff;color:#0b1a1a}
+.ph-bar .bar{background:rgba(255,255,255,.3)}
+.ph-bar .bar>i{background:#fff}
+.pill-sm{padding:.45rem .9rem;border-radius:999px;background:#fff;color:#0b1a1a;font-weight:600;min-height:2.5rem;flex:none}
+.mi-off .m-sub{white-space:normal}
+.devpop{position:absolute;left:.8rem;right:.8rem;bottom:100%;margin-bottom:.2rem}
+.devpop select{background:var(--panel)}
+@media (prefers-reduced-motion: reduce){ .pimg{transition:none} }
+dialog{max-height:90dvh;overflow:auto}
+.sect{border-top:1px solid var(--line);padding-top:.8rem;display:flex;flex-direction:column;gap:.6rem}
+.dlg h4{margin:0;font-size:1rem;font-weight:650}
+.dlg input[readonly]{color:var(--muted);font-size:.85rem}
+
+.frame{position:fixed;inset:0;background:#000;z-index:20;overflow:hidden}
+.fbg{position:absolute;inset:-10%;background-size:cover;background-position:center;filter:blur(36px) brightness(.55)}
+.fimg{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;transition:opacity 1.2s ease}
+.fimg.on{opacity:1}
+.finfo{position:absolute;left:1.2rem;right:1.2rem;bottom:1rem;display:flex;justify-content:space-between;gap:1rem;color:#fff;font-size:1.1rem;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+@media (prefers-reduced-motion: reduce){ .fimg{transition:none} }
+</style>
+</head>
+<body>
+
+<!--
+  RECOMMENDED CALENDAR SYNC: the Apps Script link (see calendar-feed.gs). Paste it under Connections > Google Calendar.
+  It never expires and is stored only on the device, not in this file. The sign-in option below is an alternative
+  that expires every hour.
+
+  SETUP FOR GOOGLE CALENDAR SIGN-IN (optional, the board works without it):
+  1. In Google Cloud Console, create a project and enable the Google Calendar API.
+  2. Create an OAuth client ID of type "Web application".
+  3. Add the exact address where you host this file under "Authorized JavaScript origins".
+  4. Paste the client ID into GOOGLE_CLIENT_ID in the script below.
+  Google sign-in will not work when this file is opened straight from storage (file://). Host it first.
+
+  SETUP FOR GOOGLE PHOTOS (optional):
+  Uses the same Google client ID. In the same Cloud project, also enable the "Google Photos Picker API".
+
+  SETUP FOR SPOTIFY (optional):
+  1. At developer.spotify.com/dashboard, create an app and tick "Web API".
+  2. Add the Redirect URI shown in this board under Connections (it is the address where this file is hosted, https).
+  3. Open Connections on the device and paste the app's client ID there (it is saved on the device only).
+  Spotify rules at the time of writing: playback control needs Premium, and apps in development mode need a Premium
+  owner and allow up to 5 listed users. Check the dashboard for current requirements.
+-->
+
+<main class="board">
+
+  <section class="panel cal" aria-label="Calendar">
+    <header class="cal-head">
+      <div>
+        <h1 id="monthTitle"></h1>
+        <p class="sync"><span id="syncText"></span><button id="gBtn" class="link"></button></p>
+      </div>
+      <div class="tools">
+        <button id="prev" class="icon" aria-label="Previous month">&lsaquo;</button>
+        <button id="today" class="pill">Today</button>
+        <button id="next" class="icon" aria-label="Next month">&rsaquo;</button>
+        <button id="addEvt" class="fab" aria-label="Add event">+</button>
+      </div>
+    </header>
+    <div class="dow" id="dow" aria-hidden="true"></div>
+    <div class="grid" id="grid"></div>
+  </section>
+
+  <section class="panel day" aria-label="Agenda">
+    <div class="panel-head" style="align-items:flex-start;margin-bottom:.3rem">
+      <div>
+        <h2 id="dayTitle"></h2>
+        <p class="sub" id="daySub"></p>
+      </div>
+    </div>
+    <div class="scroll" id="agenda"></div>
+  </section>
+
+  <section class="panel media" aria-label="Photos and music">
+    <div class="ph" aria-hidden="true">
+      <img class="pimg" id="pimgA" alt="">
+      <img class="pimg" id="pimgB" alt="">
+    </div>
+    <p class="ph-empty" id="phEmpty">No photos yet. Tap here to choose some.</p>
+    <button class="ph-hit" id="phHit" aria-label="Choose photos"></button>
+    <div class="ph-bar">
+      <div class="devpop" id="devPop" hidden><select id="mDev" aria-label="Play on"></select></div>
+      <div class="mi-off" id="mOff">
+        <p class="m-sub" id="mOffText" style="flex:1"></p>
+        <button id="mConnect" class="pill-sm">Connect</button>
+      </div>
+      <div class="mi-on" id="mOn" hidden>
+        <div class="art" id="mArt" role="img" aria-label="Album art"></div>
+        <div class="mi-text">
+          <p class="m-title" id="mTitle"></p>
+          <p class="m-sub" id="mArtist"></p>
+        </div>
+        <div class="mi-ctrl">
+          <button class="m-btn" id="mPrev" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg></button>
+          <button class="m-btn main" id="mPlay" aria-label="Play"></button>
+          <button class="m-btn" id="mNext" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+          <button class="m-btn" id="mDevBtn" aria-label="Choose a device"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16 9.5a4 4 0 0 1 0 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+        </div>
+      </div>
+      <div class="bar" id="mBarWrap"><i id="mBar"></i></div>
+    </div>
+  </section>
+
+  <section class="panel chores" aria-label="Chores">
+    <div class="panel-head">
+      <h2>Chores</h2>
+      <button id="addChore" class="fab" aria-label="Add chore">+</button>
+    </div>
+    <div class="scroll" id="choreList"></div>
+  </section>
+
+  <section class="panel shop" aria-label="Shopping">
+    <div class="panel-head"><h2>Shopping</h2></div>
+    <div class="add-line">
+      <input id="shopInput" type="text" placeholder="Add an item" autocomplete="off" aria-label="Add a shopping item">
+      <button id="shopAdd" class="primary">Add</button>
+    </div>
+    <div class="scroll" id="shopList"></div>
+  </section>
+
+  <section class="panel home strip" aria-label="Home">
+    <h2>Home</h2>
+    <button class="tile" id="lamp" aria-pressed="false">
+      <span class="n">Living room lamp</span>
+      <span class="s" id="lampState">Off</span>
+    </button>
+    <p class="hint">Demo switch. Not connected to a smart home hub yet.</p>
+    <button id="openSettings" class="gear" aria-label="Connections and settings">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M4 7h9M19 7h1M4 12h3M13 12h7M4 17h9M19 17h1"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="16" cy="17" r="2"/></svg>
+    </button>
+  </section>
+
+</main>
+
+<!-- event dialog -->
+<dialog id="evDlg" aria-labelledby="evDlgTitle">
+  <div class="dlg">
+    <h3 id="evDlgTitle">New event</h3>
+    <label>Title<input id="evTitle" type="text" autocomplete="off"></label>
+    <label>Date<input id="evDate" type="date"></label>
+    <div class="two">
+      <label>Starts<input id="evStart" type="time"></label>
+      <label>Ends<input id="evEnd" type="time"></label>
+    </div>
+    <p class="hint">Leave the times empty for an all-day event.</p>
+    <div class="swatches" id="evColors" role="radiogroup" aria-label="Color"></div>
+    <p class="err" id="evErr" hidden></p>
+    <div class="actions">
+      <button id="evDel" class="danger">Delete</button>
+      <span class="grow"></span>
+      <button id="evCancel" class="secondary">Cancel</button>
+      <button id="evSave" class="primary">Save event</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- chore dialog -->
+<dialog id="chDlg" aria-labelledby="chDlgTitle">
+  <div class="dlg">
+    <h3 id="chDlgTitle">New chore</h3>
+    <label>Chore<input id="chText" type="text" autocomplete="off"></label>
+    <label>Due (optional)<input id="chDue" type="datetime-local"></label>
+    <p class="err" id="chErr" hidden></p>
+    <div class="actions">
+      <button id="chDel" class="danger">Delete</button>
+      <span class="grow"></span>
+      <button id="chCancel" class="secondary">Cancel</button>
+      <button id="chSave" class="primary">Save chore</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- connections dialog -->
+<dialog id="setDlg" aria-labelledby="setTitle">
+  <div class="dlg">
+    <h3 id="setTitle">Connections</h3>
+
+    <div class="sect">
+      <h4>Google Calendar</h4>
+      <p class="hint" id="calStatus"></p>
+      <label>Calendar link from your Apps Script<input id="calInput" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://script.google.com/macros/s/.../exec?key=..."></label>
+      <div class="actions">
+        <button id="calClear" class="danger">Remove link</button>
+        <span class="grow"></span>
+        <button id="calSave" class="primary">Save and sync</button>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h4>Spotify</h4>
+      <p class="hint" id="spStatus"></p>
+      <label>Spotify client ID<input id="spCid" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Paste it from the Spotify dashboard"></label>
+      <label>Redirect URI to register in the Spotify dashboard<input id="spRedirect" type="text" readonly></label>
+      <div class="actions">
+        <button id="spDisc" class="danger">Disconnect</button>
+        <span class="grow"></span>
+        <button id="spConn" class="primary">Connect Spotify</button>
+      </div>
+    </div>
+
+    <div class="sect">
+      <h4>Google Photos</h4>
+      <p class="hint" id="gpStatus"></p>
+      <p class="hint">Google only lets apps see photos you pick. In the picker, open an album and select its photos (up to 80).</p>
+      <a id="gpLink" class="link" href="#" target="_blank" rel="noopener" hidden>Open the Google Photos picker</a>
+      <div class="actions">
+        <button id="gpClear" class="danger">Remove photos</button>
+        <span class="grow"></span>
+        <button id="gpShow" class="secondary">Start slideshow</button>
+        <button id="gpPick" class="primary">Choose photos</button>
+      </div>
+      <div class="two">
+        <label>Change photo every
+          <select id="slideSec">
+            <option value="10">10 seconds</option><option value="15">15 seconds</option>
+            <option value="30">30 seconds</option><option value="60">1 minute</option>
+          </select>
+        </label>
+        <label>Start slideshow after
+          <select id="idleMin">
+            <option value="0">Never</option><option value="1">1 minute</option>
+            <option value="2">2 minutes</option><option value="5">5 minutes</option>
+            <option value="10">10 minutes</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="actions"><span class="grow"></span><button id="setClose" class="primary">Done</button></div>
+  </div>
+</dialog>
+
+<!-- photo frame (idle slideshow) -->
+<div class="frame" id="frame" hidden aria-label="Photo slideshow. Tap anywhere to close.">
+  <div class="fbg" id="fbg"></div>
+  <img class="fimg" id="fimgA" alt="">
+  <img class="fimg" id="fimgB" alt="">
+  <div class="finfo"><span id="fClock"></span><span id="fMusic"></span></div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+<script>
+/* ================= settings ================= */
+const GOOGLE_CLIENT_ID = "";   // paste your OAuth client ID here to enable Google Calendar sync
+const GOOGLE_SCOPE = "https://www.googleapis.com/auth/calendar.events";
+const PHOTOS_SCOPE = "https://www.googleapis.com/auth/photospicker.mediaitems.readonly";
+const SPOTIFY_CLIENT_ID = "";  // optional: or paste the ID under Connections on the device instead
+const spCid = () => SPOTIFY_CLIENT_ID || store.get("spClientId", "");
+const SPOTIFY_SCOPE = "user-read-playback-state user-modify-playback-state user-read-currently-playing";
+const COLORS = ["teal","plum","amber","blue","rose"];
+const COLOR_NAMES = {teal:"Teal",plum:"Plum",amber:"Amber",blue:"Blue",rose:"Rose"};
+
+/* ================= storage (falls back to memory if the browser blocks it) ================= */
+const mem = {};
+const store = {
+  get(k, d){
+    try{ const v = localStorage.getItem("board:"+k); if(v !== null) return JSON.parse(v); }catch(e){}
+    return (k in mem) ? mem[k] : d;
+  },
+  set(k, v){
+    mem[k] = v;
+    try{ localStorage.setItem("board:"+k, JSON.stringify(v)); }catch(e){}
+  }
+};
+
+/* ================= helpers ================= */
+const $ = id => document.getElementById(id);
+const pad = n => String(n).padStart(2,"0");
+const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseYmd = s => { const [y,m,d] = s.split("-").map(Number); return new Date(y, m-1, d); };
+const addDays = (d,n) => { const x = new Date(d); x.setDate(x.getDate()+n); return x; };
+const uid = () => Math.random().toString(36).slice(2,10);
+const fmtTime = t => t ? new Date(2000,0,1,...t.split(":").map(Number)).toLocaleTimeString([], {hour:"numeric",minute:"2-digit"}) : "";
+const addHour = t => { const [h,m] = t.split(":").map(Number); const tot = Math.min(h*60+m+60, 23*60+59); return pad(Math.floor(tot/60))+":"+pad(tot%60); };
+
+function h(tag, attrs = {}, ...kids){
+  const e = document.createElement(tag);
+  for(const [k,v] of Object.entries(attrs)){
+    if(k === "class") e.className = v;
+    else if(k.startsWith("on")) e[k] = v;
+    else if(v !== false && v !== null && v !== undefined) e.setAttribute(k, v === true ? "" : v);
+  }
+  e.append(...kids.filter(x => x !== null && x !== undefined && x !== false));
+  return e;
+}
+
+let toastTimer;
+function toast(msg){
+  const t = $("toast"); t.textContent = msg; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 4000);
+}
+
+/* ================= state ================= */
+let events  = store.get("events", []);
+let chores  = store.get("chores", []);
+let shopping= store.get("shopping", []);
+let lampOn  = store.get("lamp", false);
+let gByDate = {};
+let gToken = null, gTokenExp = 0, tokenClient = null;
+let todayStr = ymd(new Date());
+let sel = todayStr;
+let view = { y: new Date().getFullYear(), m: new Date().getMonth() };
+let showChoreDone = false, showShopDone = false;
+
+/* first run: a few sample items so the layout is not empty. Delete them any time. */
+(function seed(){
+  if(store.get("seeded", false)) return;
+  const t = new Date();
+  events = [
+    {id:uid(), title:"Team meeting", date:ymd(t), start:"10:30", end:"11:00", color:"teal"},
+    {id:uid(), title:"Swim lessons", date:ymd(addDays(t,1)), start:"09:00", end:"09:45", color:"plum"},
+    {id:uid(), title:"Birthday: Alex", date:ymd(addDays(t,3)), start:"", end:"", color:"rose"}
+  ];
+  const due = addDays(t,2); due.setHours(9,0,0,0);
+  chores = [
+    {id:uid(), text:"Reorder prescription", due:`${ymd(due)}T09:00`, done:false},
+    {id:uid(), text:"Prune roses", due:"", done:false},
+    {id:uid(), text:"Put washing away", due:"", done:false}
+  ];
+  shopping = [
+    {id:uid(), text:"Wipes", done:false},
+    {id:uid(), text:"Toilet paper", done:false},
+    {id:uid(), text:"Milk", done:true}
+  ];
+  store.set("events",events); store.set("chores",chores); store.set("shopping",shopping); store.set("seeded",true);
+})();
+
+/* ================= events ================= */
+function eventsFor(date){
+  const local = events.filter(e => e.date === date);
+  const g = gByDate[date] || [];
+  return [...local, ...g].sort((a,b) => (a.start||"").localeCompare(b.start||""));
+}
+
+/* ================= calendar render ================= */
+function renderDow(){
+  const box = $("dow"); box.innerHTML = "";
+  for(let i=0;i<7;i++){
+    box.append(h("span",{}, new Date(2024,0,1+i).toLocaleDateString([], {weekday:"short"})));
+  }
+}
+
+function gridStart(){
+  const first = new Date(view.y, view.m, 1);
+  return addDays(first, -((first.getDay()+6)%7));
+}
+
+function renderCal(){
+  const first = new Date(view.y, view.m, 1);
+  $("monthTitle").textContent = first.toLocaleDateString([], {month:"long", year:"numeric"});
+  const start = gridStart();
+  const g = $("grid"); g.innerHTML = "";
+  for(let i=0;i<42;i++){
+    const d = addDays(start,i), s = ymd(d), inMonth = d.getMonth() === view.m;
+    const list = eventsFor(s), max = 3;
+    const cell = h("button",{
+      class:"cell"+(inMonth?"":" out")+(s===todayStr?" today":"")+(s===sel?" sel":""),
+      "aria-label": d.toLocaleDateString([], {weekday:"long",day:"numeric",month:"long"}) + (list.length ? `, ${list.length} event${list.length>1?"s":""}` : ""),
+      onclick: () => {
+        sel = s;
+        if(!inMonth){ view = {y:d.getFullYear(), m:d.getMonth()}; fetchGoogle(); }
+        render();
+      }
+    }, h("span",{class:"num"}, String(d.getDate())));
+    list.slice(0,max).forEach(ev => cell.append(h("span",{class:"ev c-"+ev.color}, ev.title)));
+    if(list.length > max) cell.append(h("span",{class:"more"}, `+${list.length-max} more`));
+    g.append(cell);
+  }
+}
+
+/* ================= agenda render ================= */
+function renderDay(){
+  const d = parseYmd(sel);
+  $("dayTitle").textContent = sel === todayStr ? "Today" : d.toLocaleDateString([], {weekday:"long"});
+  $("daySub").textContent = d.toLocaleDateString([], {day:"numeric", month:"long"});
+  const box = $("agenda"); box.innerHTML = "";
+  for(let i=0;i<30;i++){
+    const day = addDays(d,i), list = eventsFor(ymd(day));
+    if(i === 0 && !list.length) box.append(h("p",{class:"empty"},"Nothing planned. Tap + to add an event."));
+    if(i > 0 && !list.length) continue;
+    if(i > 0) box.append(h("p",{class:"group-title"}, day.toLocaleDateString([], {weekday:"short", day:"numeric", month:"short"})));
+    list.forEach(ev => {
+      const when = ev.start ? `${fmtTime(ev.start)}${ev.end ? " to "+fmtTime(ev.end) : ""}` : "All day";
+      const editable = ev.source !== "google";
+      box.append(h("button",{
+        class:"item c-"+ev.color+(editable?"":" ro"),
+        onclick: editable ? () => openEvent(ev) : null,
+        "aria-label": `${ev.title}, ${when}`
+      }, h("span",{}, h("span",{class:"t", style:"display:block"}, ev.title), h("span",{class:"w"}, when))));
+    });
+  }
+}
+
+/* ================= chores ================= */
+function dueLabel(c){
+  if(!c.due) return null;
+  const dt = new Date(c.due);
+  const late = !c.done && dt < new Date();
+  return { late, text: dt.toLocaleString([], {weekday:"short", day:"numeric", month:"short", hour:"numeric", minute:"2-digit"}) };
+}
+
+function choreRow(c){
+  const dl = dueLabel(c);
+  return h("div",{class:"row"+(c.done?" done":"")},
+    h("button",{class:"check", role:"checkbox", "aria-checked":String(c.done), "aria-label":`Mark ${c.text} ${c.done?"not done":"done"}`,
+      onclick:() => { c.done = !c.done; store.set("chores",chores); renderChores(); }}, c.done ? "\u2713" : ""),
+    h("button",{class:"body", onclick:() => openChore(c), "aria-label":`Edit ${c.text}`},
+      h("span",{class:"txt"}, c.text),
+      dl ? h("span",{class:"due"+(dl.late?" late":"")}, (dl.late?"Overdue: ":"")+dl.text) : null)
+  );
+}
+
+function renderChores(){
+  const box = $("choreList"); box.innerHTML = "";
+  const open = chores.filter(c => !c.done).sort((a,b) => (a.due||"9999").localeCompare(b.due||"9999"));
+  open.forEach(c => box.append(choreRow(c)));
+  if(!open.length) box.append(h("p",{class:"empty"},"All done. Tap + to add a chore."));
+  const done = chores.filter(c => c.done);
+  if(done.length){
+    box.append(h("div",{class:"donebar"},
+      h("button",{class:"link", onclick:() => { showChoreDone = !showChoreDone; renderChores(); }}, `${done.length} done`),
+      h("button",{class:"link", onclick:() => { chores = chores.filter(c => !c.done); store.set("chores",chores); renderChores(); }}, "Clear done")));
+    if(showChoreDone) done.forEach(c => box.append(choreRow(c)));
+  }
+}
+
+/* ================= shopping ================= */
+function shopRow(it){
+  return h("div",{class:"row"+(it.done?" done":"")},
+    h("button",{class:"check sq", role:"checkbox", "aria-checked":String(it.done), "aria-label":`${it.text}, ${it.done?"checked":"not checked"}`,
+      onclick:() => { it.done = !it.done; store.set("shopping",shopping); renderShop(); }}, it.done ? "\u2713" : ""),
+    h("span",{class:"body"}, h("span",{class:"txt"}, it.text)),
+    h("button",{class:"rm", "aria-label":`Remove ${it.text}`, onclick:() => { shopping = shopping.filter(x => x.id !== it.id); store.set("shopping",shopping); renderShop(); }}, "\u00d7")
+  );
+}
+
+function renderShop(){
+  const box = $("shopList"); box.innerHTML = "";
+  const open = shopping.filter(i => !i.done);
+  open.forEach(i => box.append(shopRow(i)));
+  if(!open.length) box.append(h("p",{class:"empty"},"The list is empty. Add an item above."));
+  const done = shopping.filter(i => i.done);
+  if(done.length){
+    box.append(h("div",{class:"donebar"},
+      h("button",{class:"link", onclick:() => { showShopDone = !showShopDone; renderShop(); }}, `${done.length} checked`),
+      h("button",{class:"link", onclick:() => { shopping = shopping.filter(i => !i.done); store.set("shopping",shopping); renderShop(); }}, "Clear checked")));
+    if(showShopDone) done.forEach(i => box.append(shopRow(i)));
+  }
+}
+
+function addShopItem(){
+  const inp = $("shopInput"), text = inp.value.trim();
+  if(!text) { inp.focus(); return; }
+  shopping.push({id:uid(), text, done:false});
+  store.set("shopping",shopping); inp.value = ""; renderShop(); inp.focus();
+}
+
+/* ================= home tile (demo) ================= */
+function renderHome(){
+  $("lamp").setAttribute("aria-pressed", String(lampOn));
+  $("lampState").textContent = lampOn ? "On" : "Off";
+}
+
+/* ================= event dialog ================= */
+let editingEv = null, chosenColor = "teal";
+
+function buildSwatches(){
+  const box = $("evColors"); box.innerHTML = "";
+  COLORS.forEach(c => box.append(h("button",{
+    class:"swatch c-"+c, role:"radio", "aria-label":COLOR_NAMES[c], "aria-checked":String(c===chosenColor),
+    onclick:() => { chosenColor = c; buildSwatches(); }
+  })));
+}
+
+function openEvent(ev){
+  editingEv = ev || null;
+  chosenColor = ev ? ev.color : "teal";
+  $("evDlgTitle").textContent = ev ? "Edit event" : "New event";
+  $("evTitle").value = ev ? ev.title : "";
+  $("evDate").value = ev ? ev.date : sel;
+  $("evStart").value = ev ? ev.start : "";
+  $("evEnd").value = ev ? ev.end : "";
+  $("evDel").hidden = !ev; $("evErr").hidden = true;
+  buildSwatches();
+  $("evDlg").showModal();
+  $("evTitle").focus();
+}
+
+async function saveEvent(){
+  const title = $("evTitle").value.trim(), date = $("evDate").value, start = $("evStart").value;
+  let end = $("evEnd").value;
+  if(!title || !date){
+    $("evErr").textContent = !title ? "Enter a title." : "Pick a date.";
+    $("evErr").hidden = false; return;
+  }
+  if(start && (!end || end <= start)) end = addHour(start);
+  const ev = {id: editingEv ? editingEv.id : uid(), title, date, start, end: start ? end : "", color: chosenColor};
+  $("evDlg").close();
+  if(editingEv){
+    events = events.map(e => e.id === ev.id ? ev : e);
+  }else if(gValid()){
+    try{ await createGoogle(ev); toast("Added to Google Calendar."); await fetchGoogle(); }
+    catch(e){ events.push(ev); toast("Couldn't reach Google. Saved on this device instead."); }
+  }else{
+    events.push(ev);
+  }
+  store.set("events", events);
+  const d = parseYmd(date); sel = date; view = {y:d.getFullYear(), m:d.getMonth()};
+  render();
+}
+
+/* ================= chore dialog ================= */
+let editingCh = null;
+function openChore(c){
+  editingCh = c || null;
+  $("chDlgTitle").textContent = c ? "Edit chore" : "New chore";
+  $("chText").value = c ? c.text : "";
+  $("chDue").value = c ? c.due : "";
+  $("chDel").hidden = !c; $("chErr").hidden = true;
+  $("chDlg").showModal(); $("chText").focus();
+}
+function saveChore(){
+  const text = $("chText").value.trim(), due = $("chDue").value;
+  if(!text){ $("chErr").textContent = "Enter a chore."; $("chErr").hidden = false; return; }
+  if(editingCh){ editingCh.text = text; editingCh.due = due; }
+  else chores.push({id:uid(), text, due, done:false});
+  store.set("chores", chores); $("chDlg").close(); renderChores();
+}
+
+/* ================= Google Calendar ================= */
+const gValid = () => !!gToken && Date.now() < gTokenExp;
+
+/* ----- Apps Script calendar link (never expires; the link is stored only on this device) ----- */
+let calUrl = store.get("calUrl", ""), calOk = null, calLast = null;
+
+function jsonp(url){
+  return new Promise((resolve, reject) => {
+    const cb = "cb" + uid(), s = document.createElement("script");
+    const t = setTimeout(() => { cleanup(); reject(new Error("timeout")); }, 15000);
+    function cleanup(){ clearTimeout(t); delete window[cb]; s.remove(); }
+    window[cb] = d => { cleanup(); resolve(d); };
+    s.onerror = () => { cleanup(); reject(new Error("load")); };
+    s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+    document.head.append(s);
+  });
+}
+
+async function fetchScript(announce){
+  const start = gridStart(), end = addDays(start, 42);
+  let url;
+  try{
+    const u = new URL(calUrl);
+    u.searchParams.set("from", start.toISOString()); u.searchParams.set("to", end.toISOString());
+    url = u.toString();
+  }catch(e){ toast("That calendar link doesn't look right."); return; }
+  try{
+    let data;
+    try{
+      const res = await fetch(url);
+      if(!res.ok) throw new Error(String(res.status));
+      data = await res.json();
+    }catch(e){ data = await jsonp(url); }
+    if(!data || data.error) throw new Error((data && data.error) || "empty");
+    const map = {};
+    const push = (date, o) => (map[date] = map[date] || []).push({...o, id:"g"+uid(), source:"google"});
+    for(const it of data.items || []){
+      const title = it.title || "(No title)";
+      const color = it.colorId ? COLORS[parseInt(it.colorId, 10) % COLORS.length] : "blue";
+      if(it.allDay){
+        let d = parseYmd(it.start), e = parseYmd(it.end);
+        if(e <= d) e = addDays(d, 1);
+        while(d < e){ push(ymd(d), {title, date:ymd(d), start:"", end:"", color}); d = addDays(d, 1); }
+      }else{
+        const s = new Date(it.start), e = new Date(it.end);
+        push(ymd(s), {title, date:ymd(s), start:`${pad(s.getHours())}:${pad(s.getMinutes())}`, end:`${pad(e.getHours())}:${pad(e.getMinutes())}`, color});
+      }
+    }
+    gByDate = map; calOk = true; calLast = new Date();
+    setSync(); renderCal(); renderDay();
+    if(announce === true) toast("Calendar synced.");
+  }catch(e){
+    calOk = false; setSync();
+    if(announce === true) toast("Couldn't load the calendar link. Check it and try again.");
+  }
+}
+
+function setSync(){
+  const btn = $("gBtn"), txt = $("syncText");
+  if(calUrl){
+    txt.textContent = calOk === false ? "Couldn't sync. Showing the last events."
+      : calLast ? "Synced " + calLast.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) + "." : "Syncing...";
+    btn.textContent = "Sync now";
+    return;
+  }
+  if(gValid()){ txt.textContent = "Synced with Google Calendar."; btn.textContent = "Sync now"; }
+  else if(store.get("gLinked", false)){ txt.textContent = "Google sign-in expired."; btn.textContent = "Reconnect Google"; }
+  else { txt.textContent = "Events are saved on this device."; btn.textContent = "Connect Google Calendar"; }
+}
+
+function loadGis(){
+  return new Promise((res, rej) => {
+    if(window.google && google.accounts) return res();
+    const s = document.createElement("script");
+    s.src = "https://accounts.google.com/gsi/client";
+    s.onload = res; s.onerror = () => rej(new Error("load"));
+    document.head.append(s);
+  });
+}
+
+async function connectGoogle(){
+  if(calUrl || gValid()){ fetchGoogle(true); return; }
+  if(!GOOGLE_CLIENT_ID){ openSettings(); return; }
+  try{ await loadGis(); }catch(e){ toast("Couldn't load Google sign-in. Check the connection."); return; }
+  if(!tokenClient){
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: GOOGLE_SCOPE,
+      callback: resp => {
+        if(resp.error){ toast("Google sign-in didn't complete."); setSync(); return; }
+        gToken = resp.access_token; gTokenExp = Date.now() + (Number(resp.expires_in||3600) - 60) * 1000;
+        store.set("gLinked", true); setSync(); fetchGoogle(true);
+      }
+    });
+  }
+  tokenClient.requestAccessToken({prompt: store.get("gLinked", false) ? "" : "consent"});
+}
+
+async function fetchGoogle(announce){
+  if(calUrl) return fetchScript(announce);
+  if(!gValid()) { setSync(); return; }
+  const start = gridStart(), end = addDays(start, 42);
+  const url = "https://www.googleapis.com/calendar/v3/calendars/primary/events?singleEvents=true&orderBy=startTime&maxResults=250"
+    + "&timeMin=" + encodeURIComponent(start.toISOString()) + "&timeMax=" + encodeURIComponent(end.toISOString());
+  try{
+    const res = await fetch(url, {headers:{Authorization:"Bearer "+gToken}});
+    if(res.status === 401){ gToken = null; setSync(); return; }
+    if(!res.ok) throw new Error(String(res.status));
+    const data = await res.json();
+    const map = {};
+    const push = (date, o) => (map[date] = map[date] || []).push({...o, id:"g"+uid(), source:"google"});
+    for(const it of data.items || []){
+      if(it.status === "cancelled") continue;
+      const title = it.summary || "(No title)";
+      const color = it.colorId ? COLORS[parseInt(it.colorId,10) % COLORS.length] : "blue";
+      if(it.start && it.start.date){
+        let d = parseYmd(it.start.date); const e = parseYmd(it.end.date);
+        while(d < e){ push(ymd(d), {title, date:ymd(d), start:"", end:"", color}); d = addDays(d,1); }
+      }else if(it.start && it.start.dateTime){
+        const s = new Date(it.start.dateTime), e = new Date(it.end.dateTime);
+        push(ymd(s), {title, date:ymd(s), start:`${pad(s.getHours())}:${pad(s.getMinutes())}`, end:`${pad(e.getHours())}:${pad(e.getMinutes())}`, color});
+      }
+    }
+    gByDate = map; setSync(); renderCal(); renderDay();
+    if(announce === true) toast("Calendar synced.");
+  }catch(e){
+    toast("Couldn't load Google Calendar. Local events are still shown.");
+  }
+}
+
+async function createGoogle(ev){
+  const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  const body = {summary: ev.title};
+  if(ev.start){
+    body.start = {dateTime:`${ev.date}T${ev.start}:00`, timeZone:tz};
+    body.end   = {dateTime:`${ev.date}T${(ev.end || addHour(ev.start))}:00`, timeZone:tz};
+  }else{
+    body.start = {date: ev.date};
+    body.end   = {date: ymd(addDays(parseYmd(ev.date), 1))};
+  }
+  const res = await fetch("https://www.googleapis.com/calendar/v3/calendars/primary/events", {
+    method:"POST", headers:{Authorization:"Bearer "+gToken, "Content-Type":"application/json"}, body:JSON.stringify(body)
+  });
+  if(!res.ok) throw new Error(String(res.status));
+}
+
+/* ================= wiring ================= */
+function render(){ renderCal(); renderDay(); renderChores(); renderShop(); renderHome(); renderMusic(); setSync(); }
+
+function shiftMonth(n){
+  const d = new Date(view.y, view.m + n, 1);
+  view = {y:d.getFullYear(), m:d.getMonth()};
+  renderCal(); fetchGoogle();
+}
+
+$("prev").onclick = () => shiftMonth(-1);
+$("next").onclick = () => shiftMonth(1);
+$("today").onclick = () => { const t = new Date(); todayStr = ymd(t); sel = todayStr; view = {y:t.getFullYear(), m:t.getMonth()}; render(); fetchGoogle(); };
+$("addEvt").onclick = () => openEvent(null);
+$("gBtn").onclick = connectGoogle;
+$("evSave").onclick = saveEvent;
+$("evCancel").onclick = () => $("evDlg").close();
+$("evDel").onclick = () => { events = events.filter(e => e.id !== editingEv.id); store.set("events",events); $("evDlg").close(); render(); };
+$("addChore").onclick = () => openChore(null);
+$("chSave").onclick = saveChore;
+$("chCancel").onclick = () => $("chDlg").close();
+$("chDel").onclick = () => { chores = chores.filter(c => c.id !== editingCh.id); store.set("chores",chores); $("chDlg").close(); renderChores(); };
+$("shopAdd").onclick = addShopItem;
+$("shopInput").addEventListener("keydown", e => { if(e.key === "Enter") addShopItem(); });
+$("lamp").onclick = () => { lampOn = !lampOn; store.set("lamp", lampOn); renderHome(); };
+
+/* keep the screen on for a wall display */
+async function keepAwake(){
+  try{ if("wakeLock" in navigator && document.visibilityState === "visible") await navigator.wakeLock.request("screen"); }catch(e){}
+}
+document.addEventListener("visibilitychange", keepAwake);
+addEventListener("pointerdown", keepAwake, {once:true});
+keepAwake();
+
+/* roll over at midnight, refresh overdue chores, re-sync every 10 minutes */
+setInterval(() => {
+  const t = ymd(new Date());
+  if(t !== todayStr){
+    const wasToday = sel === todayStr; todayStr = t;
+    if(wasToday){ sel = t; const d = new Date(); view = {y:d.getFullYear(), m:d.getMonth()}; }
+    render();
+  }
+  renderChores();
+}, 60000);
+setInterval(() => fetchGoogle(), 600000);
+
+/* ================= connections: shared ================= */
+const ICON = {
+  play:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>',
+  pause:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>'
+};
+let slideSec = store.get("slideSec", 15), idleMin = store.get("idleMin", 5);
+
+/* ================= Spotify (remote control of Spotify on any of your devices) ================= */
+const SP_TOKEN_URL = "https://accounts.spotify.com/api/token";
+const spRedirect = () => location.origin + location.pathname;
+let sp = store.get("spTokens", null);   // {access, refresh, exp}
+let spNow = null, spDevices = [], spTick = 0;
+
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+
+async function spLogin(){
+  if(!spCid()){ toast("Paste your Spotify client ID under Connections first."); return; }
+  if(!(window.crypto && crypto.subtle)){ toast("Spotify sign-in needs a secure (https) address."); return; }
+  const verifier = b64url(crypto.getRandomValues(new Uint8Array(48)));
+  const challenge = b64url(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(verifier)));
+  store.set("spVerifier", verifier);
+  const q = new URLSearchParams({
+    client_id: spCid(), response_type:"code", redirect_uri: spRedirect(),
+    scope: SPOTIFY_SCOPE, code_challenge_method:"S256", code_challenge: challenge, state:"spotify"
+  });
+  location.href = "https://accounts.spotify.com/authorize?" + q;
+}
+
+function spSaveTokens(t){
+  sp = { access: t.access_token, refresh: t.refresh_token || (sp && sp.refresh), exp: Date.now() + (Number(t.expires_in||3600) - 60) * 1000 };
+  store.set("spTokens", sp);
+}
+
+async function spHandleRedirect(){
+  const p = new URLSearchParams(location.search);
+  if(p.get("state") !== "spotify" || !(p.get("code") || p.get("error"))) return;
+  history.replaceState({}, "", location.pathname);
+  if(p.get("error")){ toast("Spotify sign-in was cancelled."); return; }
+  try{
+    const res = await fetch(SP_TOKEN_URL, {
+      method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: new URLSearchParams({client_id:spCid(), grant_type:"authorization_code", code:p.get("code"), redirect_uri:spRedirect(), code_verifier:store.get("spVerifier","")})
+    });
+    if(!res.ok) throw new Error(String(res.status));
+    spSaveTokens(await res.json());
+    toast("Spotify connected.");
+  }catch(e){ toast("Spotify sign-in failed. Check the client ID and redirect URI."); }
+}
+
+function spDisconnect(){
+  sp = null; spNow = null; spDevices = [];
+  store.set("spTokens", null);
+  renderMusic(); refreshSettings();
+}
+
+async function spToken(){
+  if(!sp) return null;
+  if(Date.now() < sp.exp) return sp.access;
+  try{
+    const res = await fetch(SP_TOKEN_URL, {
+      method:"POST", headers:{"Content-Type":"application/x-www-form-urlencoded"},
+      body: new URLSearchParams({grant_type:"refresh_token", refresh_token:sp.refresh, client_id:spCid()})
+    });
+    if(res.status === 400 || res.status === 401){ spDisconnect(); toast("Spotify sign-in expired. Connect again in Connections."); return null; }
+    if(!res.ok) return null;
+    spSaveTokens(await res.json());
+    return sp.access;
+  }catch(e){ return null; }
+}
+
+async function spApi(method, path, body){
+  const t = await spToken();
+  if(!t) return {status:0};
+  try{
+    const res = await fetch("https://api.spotify.com/v1" + path, {
+      method, headers: Object.assign({Authorization:"Bearer "+t}, body ? {"Content-Type":"application/json"} : {}),
+      body: body ? JSON.stringify(body) : undefined
+    });
+    let data = null;
+    if(res.status !== 204){ try{ data = await res.json(); }catch(e){} }
+    return {status:res.status, data};
+  }catch(e){ return {status:0}; }
+}
+
+async function spDevicesRefresh(){
+  const r = await spApi("GET", "/me/player/devices");
+  if(r.status === 200 && r.data) spDevices = r.data.devices || [];
+}
+
+async function spPoll(){
+  if(!sp || document.visibilityState !== "visible") return;
+  const r = await spApi("GET", "/me/player");
+  if(r.status === 200 && r.data && r.data.item){
+    const it = r.data.item, imgs = ((it.album || it.show || {}).images) || [];
+    spNow = {
+      playing: !!r.data.is_playing, title: it.name || "",
+      artist: (it.artists || []).map(a => a.name).join(", ") || (it.show && it.show.publisher) || "",
+      art: (imgs[1] || imgs[0] || {}).url || "", dur: it.duration_ms || 0,
+      pos: r.data.progress_ms || 0, at: Date.now()
+    };
+  }else if(r.status === 200 || r.status === 204){
+    spNow = null;
+  }
+  if(sp && (spTick++ % 3 === 0 || !spNow)) await spDevicesRefresh();
+  renderMusic();
+  if(frameOn) updateFrameInfo();
+}
+
+function renderDevices(){
+  const sel = $("mDev");
+  if(document.activeElement === sel) return;
+  const sig = spDevices.map(d => d.id + d.is_active).join("|");
+  if(sel.dataset.sig === sig) return;
+  sel.dataset.sig = sig;
+  sel.innerHTML = "";
+  if(!spDevices.length){ sel.append(h("option",{value:""}, "No devices found")); sel.disabled = true; return; }
+  sel.disabled = false;
+  if(!spDevices.some(d => d.is_active)) sel.append(h("option",{value:""}, "Play on..."));
+  spDevices.forEach(d => sel.append(h("option",{value:d.id, selected:d.is_active}, d.name)));
+}
+
+function renderMusic(){
+  const off = $("mOff"), on = $("mOn");
+  if(!sp){
+    off.hidden = false; on.hidden = true;
+    $("mOffText").textContent = "Music is not connected.";
+    $("mConnect").textContent = spCid() ? "Connect" : "Set up";
+    $("mBarWrap").hidden = true; $("devPop").hidden = true;
+    return;
+  }
+  off.hidden = true; on.hidden = false; $("mBarWrap").hidden = false;
+  if(spNow){
+    $("mTitle").textContent = spNow.title;
+    $("mArtist").textContent = spNow.artist;
+    $("mArt").style.backgroundImage = spNow.art ? `url("${spNow.art}")` : "none";
+  }else{
+    $("mTitle").textContent = "Nothing playing";
+    $("mArtist").textContent = spDevices.length ? "Tap the speaker to choose a device." : "Open Spotify on a phone, tablet or speaker.";
+    $("mArt").style.backgroundImage = "none";
+  }
+  const playing = !!(spNow && spNow.playing);
+  $("mPlay").innerHTML = playing ? ICON.pause : ICON.play;
+  $("mPlay").setAttribute("aria-label", playing ? "Pause" : "Play");
+  updateProgress(); renderDevices();
+}
+
+function updateProgress(){
+  const bar = $("mBar");
+  if(!spNow || !spNow.dur){ bar.style.width = "0%"; return; }
+  const pos = Math.min(spNow.pos + (spNow.playing ? Date.now() - spNow.at : 0), spNow.dur);
+  bar.style.width = (pos / spNow.dur * 100) + "%";
+}
+
+function spError(r){
+  if(r.status === 403) toast("Playback control needs Spotify Premium.");
+  else if(r.status === 404) toast("No active Spotify device. Pick one from the list.");
+  else if(r.status === 401) toast("Spotify sign-in expired. Connect again in Connections.");
+  else if(r.status === 0 || r.status >= 400) toast("Couldn't reach Spotify.");
+}
+
+async function spControl(action){
+  let r;
+  if(action === "toggle"){
+    const playing = !!(spNow && spNow.playing);
+    if(spNow){ spNow.pos += playing ? Date.now() - spNow.at : 0; spNow.at = Date.now(); spNow.playing = !playing; renderMusic(); }
+    r = await spApi("PUT", playing ? "/me/player/pause" : "/me/player/play");
+  }else{
+    r = await spApi("POST", action === "next" ? "/me/player/next" : "/me/player/previous");
+  }
+  if(r.status >= 400 || r.status === 0) spError(r);
+  setTimeout(spPoll, 700);
+}
+
+/* ================= Google Photos (Picker API) ================= */
+let photos = [];                      // blob URLs of the saved photos
+let gpToken = null, gpExp = 0, gpClient = null, gpCb = null, gpBusy = false;
+const gpValid = () => !!gpToken && Date.now() < gpExp;
+const PH_CACHE = "board-photos-v1";
+
+function setGp(msg){ $("gpStatus").textContent = msg; }
+
+async function gpAuth(){
+  if(gpValid()) return gpToken;
+  if(!GOOGLE_CLIENT_ID){ toast("Add your Google client ID at the top of the script first."); throw new Error("no client id"); }
+  await loadGis();
+  return new Promise((resolve, reject) => {
+    gpCb = {resolve, reject};
+    if(!gpClient){
+      gpClient = google.accounts.oauth2.initTokenClient({
+        client_id: GOOGLE_CLIENT_ID, scope: PHOTOS_SCOPE,
+        callback: resp => {
+          if(resp.error){ gpCb && gpCb.reject(new Error(resp.error)); return; }
+          gpToken = resp.access_token; gpExp = Date.now() + (Number(resp.expires_in||3600) - 60) * 1000;
+          gpCb && gpCb.resolve(gpToken);
+        },
+        error_callback: err => gpCb && gpCb.reject(err)
+      });
+    }
+    gpClient.requestAccessToken();
+  });
+}
+
+async function gpWait(session, token, isClosed){
+  const wait = (parseFloat((session.pollingConfig || {}).pollInterval) || 5) * 1000;
+  const end = Date.now() + (parseFloat((session.pollingConfig || {}).timeoutIn) || 600) * 1000;
+  let closedPolls = 0;
+  while(Date.now() < end){
+    await new Promise(r => setTimeout(r, wait));
+    const r = await fetch("https://photospicker.googleapis.com/v1/sessions/" + session.id, {headers:{Authorization:"Bearer "+token}});
+    if(!r.ok) throw new Error("poll " + r.status);
+    const s = await r.json();
+    if(s.mediaItemsSet) return true;
+    if(isClosed() && ++closedPolls > 2) return false;
+  }
+  return false;
+}
+
+async function gpList(sessionId, token){
+  let items = [], pageToken = "";
+  do{
+    const u = new URL("https://photospicker.googleapis.com/v1/mediaItems");
+    u.searchParams.set("sessionId", sessionId); u.searchParams.set("pageSize", "100");
+    if(pageToken) u.searchParams.set("pageToken", pageToken);
+    const r = await fetch(u, {headers:{Authorization:"Bearer "+token}});
+    if(!r.ok) throw new Error("list " + r.status);
+    const d = await r.json();
+    items.push(...(d.mediaItems || [])); pageToken = d.nextPageToken || "";
+  }while(pageToken && items.length < 80);
+  return items.filter(i => i.mediaFile && (i.type === "PHOTO" || /^image\//.test(i.mediaFile.mimeType || ""))).slice(0, 80);
+}
+
+async function gpDownload(items, token){
+  const blobs = [], queue = items.slice(); let done = 0;
+  async function worker(){
+    while(queue.length){
+      const it = queue.shift();
+      try{
+        const r = await fetch(it.mediaFile.baseUrl + "=w1600-h1600", {headers:{Authorization:"Bearer "+token}});
+        if(r.ok) blobs.push(await r.blob());
+      }catch(e){}
+      done++; setGp(`Saving photos: ${done} of ${items.length}`);
+    }
+  }
+  await Promise.all([worker(), worker(), worker(), worker()]);
+  return blobs;
+}
+
+async function gpSave(blobs){
+  try{
+    const c = await caches.open(PH_CACHE);
+    for(const k of await c.keys()) await c.delete(k);
+    for(let i = 0; i < blobs.length; i++){
+      await c.put(`https://photos.invalid/${i}`, new Response(blobs[i], {headers:{"Content-Type": blobs[i].type || "image/jpeg"}}));
+    }
+  }catch(e){}
+}
+
+async function gpLoadSaved(){
+  try{
+    const c = await caches.open(PH_CACHE), keys = await c.keys(), urls = [];
+    for(const k of keys){ const r = await c.match(k); if(r) urls.push(URL.createObjectURL(await r.blob())); }
+    photos = urls;
+  }catch(e){}
+  refreshSettings(); resetIdle(); widgetStart();
+}
+
+async function gpPick(){
+  if(gpBusy){ toast("Still waiting for your selection in Google Photos."); return; }
+  if(!gpValid()){
+    try{ await gpAuth(); toast("Google Photos connected. Tap Choose photos again."); }
+    catch(e){ toast("Google Photos sign-in didn't complete."); }
+    return;
+  }
+  gpBusy = true;
+  let win = null;
+  try{ win = window.open("", "_blank"); }catch(e){}
+  try{
+    const token = gpToken;
+    const res = await fetch("https://photospicker.googleapis.com/v1/sessions", {
+      method:"POST", headers:{Authorization:"Bearer "+token, "Content-Type":"application/json"},
+      body: JSON.stringify({pickingConfig:{maxItemCount:"80"}})
+    });
+    if(!res.ok) throw new Error("session " + res.status);
+    const session = await res.json();
+    const url = session.pickerUri + "/autoclose";
+    if(win) win.location.href = url;
+    const a = $("gpLink"); a.href = url; a.hidden = false;
+    setGp("Pick your photos in Google Photos and tap Done there. This board picks them up automatically.");
+    const picked = await gpWait(session, token, () => !!(win && win.closed));
+    if(!picked){ setGp("No photos were picked."); return; }
+    const items = await gpList(session.id, token);
+    if(!items.length){ setGp("No photos were picked."); return; }
+    const blobs = await gpDownload(items, token);
+    if(!blobs.length) throw new Error("download");
+    photos.forEach(u => URL.revokeObjectURL(u));
+    photos = blobs.map(b => URL.createObjectURL(b));
+    await gpSave(blobs);
+    fetch("https://photospicker.googleapis.com/v1/sessions/" + session.id, {method:"DELETE", headers:{Authorization:"Bearer "+token}}).catch(() => {});
+    toast(`${photos.length} photos ready.`);
+    resetIdle(); widgetStart();
+  }catch(e){
+    toast("Couldn't get your photos from Google. Try again.");
+    try{ if(win && !win.closed) win.close(); }catch(_){}
+  }finally{
+    gpBusy = false; $("gpLink").hidden = true; refreshSettings();
+  }
+}
+
+async function gpClear(){
+  photos.forEach(u => URL.revokeObjectURL(u)); photos = [];
+  try{ const c = await caches.open(PH_CACHE); for(const k of await c.keys()) await c.delete(k); }catch(e){}
+  if(frameOn) stopFrame();
+  refreshSettings(); widgetStart();
+}
+
+/* ================= photo widget (inline slideshow on the board) ================= */
+let wTop = "A", wIdx = 0, wTimer = null;
+
+function widgetShow(first){
+  const has = photos.length > 0;
+  $("phEmpty").hidden = has;
+  $("phHit").setAttribute("aria-label", has ? "Open photo slideshow" : "Choose photos");
+  if(!has){ $("pimgA").classList.remove("on"); $("pimgB").classList.remove("on"); return; }
+  if(!first) wIdx = (wIdx + 1) % photos.length;
+  if(wIdx >= photos.length) wIdx = 0;
+  const incoming = wTop === "A" ? $("pimgB") : $("pimgA"), outgoing = wTop === "A" ? $("pimgA") : $("pimgB");
+  incoming.src = photos[wIdx];
+  incoming.classList.add("on"); outgoing.classList.remove("on");
+  wTop = wTop === "A" ? "B" : "A";
+}
+
+function widgetStart(){
+  clearInterval(wTimer);
+  wIdx = photos.length ? Math.floor(Math.random() * photos.length) : 0;
+  widgetShow(true);
+  if(photos.length > 1) wTimer = setInterval(() => { if(document.visibilityState === "visible") widgetShow(false); }, slideSec * 1000);
+}
+
+/* ================= photo frame (idle slideshow) ================= */
+let frameOn = false, slideIdx = 0, slideTimer = null, topImg = "A", idleTimer = null;
+
+function updateFrameInfo(){
+  const d = new Date();
+  $("fClock").textContent = d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) + "  " + d.toLocaleDateString([], {weekday:"long", day:"numeric", month:"long"});
+  $("fMusic").textContent = (spNow && spNow.playing) ? `${spNow.title}${spNow.artist ? " - " + spNow.artist : ""}` : "";
+}
+
+function showSlide(first){
+  if(!photos.length) return;
+  if(!first) slideIdx = (slideIdx + 1) % photos.length;
+  const url = photos[slideIdx];
+  const incoming = topImg === "A" ? $("fimgB") : $("fimgA"), outgoing = topImg === "A" ? $("fimgA") : $("fimgB");
+  incoming.src = url;
+  $("fbg").style.backgroundImage = `url("${url}")`;
+  incoming.classList.add("on"); outgoing.classList.remove("on");
+  topImg = topImg === "A" ? "B" : "A";
+  updateFrameInfo();
+}
+
+function startFrame(){
+  if(!photos.length){ toast("No photos yet. Choose some in Connections."); return; }
+  frameOn = true; $("frame").hidden = false;
+  slideIdx = Math.floor(Math.random() * photos.length);
+  showSlide(true);
+  clearInterval(slideTimer); slideTimer = setInterval(() => showSlide(false), slideSec * 1000);
+  keepAwake();
+}
+
+function stopFrame(){
+  frameOn = false; $("frame").hidden = true; clearInterval(slideTimer);
+  resetIdle();
+}
+
+function resetIdle(){
+  clearTimeout(idleTimer);
+  if(frameOn || !idleMin || !photos.length) return;
+  idleTimer = setTimeout(() => {
+    if(document.querySelector("dialog[open]")) resetIdle(); else startFrame();
+  }, idleMin * 60000);
+}
+
+/* ================= connections dialog ================= */
+function refreshSettings(){
+  $("calStatus").textContent = !calUrl ? "No link yet. The setup steps are at the top of calendar-feed.gs."
+    : calOk === false ? "Saved, but the last sync failed. Check the link."
+    : calLast ? "Connected. Last synced " + calLast.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"}) + "."
+    : "Link saved on this device.";
+  $("calClear").hidden = !calUrl;
+  $("spStatus").textContent = !spCid() ? "Paste your Spotify client ID below, then tap Connect Spotify."
+    : sp ? "Connected. Playback control needs Spotify Premium." : "Not connected.";
+  $("spConn").textContent = sp ? "Reconnect" : "Connect Spotify";
+  $("spDisc").hidden = !sp;
+  if(!gpBusy) setGp(photos.length ? `${photos.length} photos saved on this device.` : "No photos chosen yet.");
+  $("gpClear").hidden = !photos.length;
+  $("gpShow").disabled = !photos.length;
+}
+
+function openSettings(){
+  $("calInput").value = calUrl;
+  $("spCid").value = spCid();
+  $("spRedirect").value = spRedirect();
+  $("slideSec").value = String(slideSec); $("idleMin").value = String(idleMin);
+  refreshSettings();
+  $("setDlg").showModal();
+}
+
+/* ================= wiring for the new parts ================= */
+$("openSettings").onclick = openSettings;
+$("setClose").onclick = () => $("setDlg").close();
+$("calSave").onclick = () => {
+  const v = $("calInput").value.trim();
+  let ok = false;
+  try{ const u = new URL(v); ok = u.protocol === "https:" && u.hostname === "script.google.com"; }catch(e){}
+  if(!ok){ toast("Paste the full link that starts with https://script.google.com/"); return; }
+  calUrl = v; calOk = null; calLast = null;
+  store.set("calUrl", calUrl);
+  setSync(); refreshSettings();
+  fetchGoogle(true).then(refreshSettings);
+};
+$("calClear").onclick = () => {
+  calUrl = ""; calOk = null; calLast = null; gByDate = {};
+  store.set("calUrl", "");
+  $("calInput").value = "";
+  render(); refreshSettings();
+};
+function saveSpCid(){
+  if(SPOTIFY_CLIENT_ID) return true;
+  const v = $("spCid").value.trim();
+  if(!/^[a-f0-9]{32}$/i.test(v)){ toast("That doesn't look like a Spotify client ID (32 letters and numbers)."); return false; }
+  store.set("spClientId", v);
+  return true;
+}
+$("spConn").onclick = () => { if(saveSpCid()) spLogin(); };
+$("spDisc").onclick = spDisconnect;
+$("mConnect").onclick = () => spCid() ? spLogin() : openSettings();
+$("mPrev").onclick = () => spControl("prev");
+$("mPlay").onclick = () => spControl("toggle");
+$("mNext").onclick = () => spControl("next");
+$("mDev").onchange = async e => {
+  $("devPop").hidden = true;
+  if(!e.target.value) return;
+  const r = await spApi("PUT", "/me/player", {device_ids:[e.target.value], play:true});
+  if(r.status >= 400 || r.status === 0) spError(r);
+  setTimeout(spPoll, 800);
+};
+$("mDev").addEventListener("pointerdown", spDevicesRefresh);
+$("gpPick").onclick = gpPick;
+$("gpClear").onclick = gpClear;
+$("gpShow").onclick = () => { $("setDlg").close(); startFrame(); };
+$("slideSec").onchange = e => {
+  slideSec = Number(e.target.value); store.set("slideSec", slideSec); widgetStart();
+  if(frameOn){ clearInterval(slideTimer); slideTimer = setInterval(() => showSlide(false), slideSec * 1000); }
+};
+$("idleMin").onchange = e => { idleMin = Number(e.target.value); store.set("idleMin", idleMin); resetIdle(); };
+$("frame").onclick = stopFrame;
+$("phHit").onclick = () => photos.length ? startFrame() : openSettings();
+$("mDevBtn").onclick = async () => {
+  const pop = $("devPop"); pop.hidden = !pop.hidden;
+  if(!pop.hidden){ await spDevicesRefresh(); renderDevices(); }
+};
+["pointerdown","keydown","touchstart"].forEach(ev => addEventListener(ev, resetIdle, {passive:true}));
+
+setInterval(spPoll, 5000);
+setInterval(updateProgress, 1000);
+
+/* start up */
+if(GOOGLE_CLIENT_ID) loadGis().catch(() => {});   // pre-load so sign-in popups are not blocked later
+renderDow();
+render();
+widgetStart();
+if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
+if(calUrl) fetchGoogle();
+spHandleRedirect().then(() => { renderMusic(); refreshSettings(); spPoll(); });
+gpLoadSaved();
+</script>
+</body>
+</html>
