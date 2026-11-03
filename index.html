@@ -10,7 +10,7 @@
 <title>Home board</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Montserrat:wght@700&display=swap" rel="stylesheet">
 <style>
 /* ---------- tokens ---------- */
 :root{
@@ -211,6 +211,53 @@ dialog{max-height:90dvh;overflow:auto}
 .fimg.on{opacity:1}
 .finfo{position:absolute;left:1.2rem;right:1.2rem;bottom:1rem;display:flex;justify-content:space-between;gap:1rem;color:#fff;font-size:1.1rem;text-shadow:0 1px 6px rgba(0,0,0,.6)}
 @media (prefers-reduced-motion: reduce){ .fimg{transition:none} }
+
+/* ---------- now playing styles: cassette and VU meter ---------- */
+.np-open{position:absolute;top:.7rem;right:.7rem;z-index:3;width:2.6rem;height:2.6rem;border-radius:50%;background:rgba(255,255,255,.92);color:#0b1a1a;font-size:1.6rem;line-height:1;display:grid;place-items:center;box-shadow:0 2px 8px rgba(0,0,0,.35)}
+dialog.np{inset:0;margin:0;width:100%;height:100%;max-width:none;max-height:none;border-radius:0;padding:0;overflow:hidden;color:#eceff2;background:radial-gradient(120% 90% at 50% 0%,#2a2118 0%,#15110d 60%,#0d0b09 100%)}
+dialog.np[open]{display:flex;flex-direction:column}
+dialog.np::backdrop{background:#000}
+.np-top{display:flex;align-items:center;justify-content:space-between;padding:.9rem 1rem .4rem}
+.np-tabs{display:flex;gap:.3rem;background:rgba(255,255,255,.08);padding:.25rem;border-radius:999px}
+.np-tabs button{padding:.5rem 1.1rem;border-radius:999px;font-weight:600;color:#c8ced4;min-height:2.5rem}
+.np-tabs button[aria-selected="true"]{background:#f1e9d6;color:#1b1710}
+.np-x{width:2.8rem;height:2.8rem;border-radius:50%;background:rgba(255,255,255,.1);font-size:1.6rem;line-height:1}
+.np-stage{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:.5rem 1rem}
+.np-stage section{width:100%;display:flex;flex-direction:column;align-items:center;gap:1rem}
+.cas{position:relative;isolation:isolate;width:min(100%, calc((100dvh - 24rem) * 1.566), 46rem);aspect-ratio:379/242}
+.cas-plate{position:absolute;inset:0;width:100%;height:100%;display:block;filter:drop-shadow(0 14px 18px rgba(0,0,0,.55));user-select:none;-webkit-user-drag:none}
+.cas svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.cas .front,.cas .tint{pointer-events:none}
+.cas .tint{mix-blend-mode:screen}
+.cas-label{font-family:'Montserrat','Instrument Sans',system-ui,sans-serif;font-weight:700;fill:#f6f5f1;letter-spacing:.01em;text-transform:uppercase}
+.spin{transform-box:fill-box;transform-origin:center;animation:reel 2.6s linear infinite;animation-play-state:paused}
+dialog.np.playing .spin{animation-play-state:running}
+@keyframes reel{to{transform:rotate(-360deg)}}
+.vu-row{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,22rem),1fr));gap:1rem;justify-items:center}
+.vu{width:100%;max-height:30dvh}
+@media (orientation:landscape){ .vu{max-height:44dvh} }
+.vu-num{font-family:Georgia,'Times New Roman',serif;font-size:12px}
+.vu-big{font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:38px;fill:#2a241c;opacity:.85}
+.vu-small{font-family:'Instrument Sans',system-ui,sans-serif;font-weight:700;font-size:11px;letter-spacing:.16em;fill:#2a241c}
+.vu-ctrl{display:flex;flex-direction:column;align-items:center;gap:.4rem;text-align:center}
+.mic-btn{padding:.55rem 1.2rem;border-radius:999px;border:1px solid rgba(255,255,255,.25);font-weight:600;min-height:2.6rem}
+.mic-btn[aria-pressed="true"]{background:#f1e9d6;color:#1b1710;border-color:#f1e9d6}
+.vu-hint{font-size:.85rem;color:#b9b2a3;max-width:34rem}
+.np-meta{text-align:center;padding:0 1rem;display:flex;flex-direction:column;align-items:center;gap:.5rem}
+.np-track{font-size:1.15rem;font-weight:600;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.np-time{font:600 1.4rem/1 ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;letter-spacing:.08em;color:#f0c24f;background:#0e0d0a;border:1px solid #3a342b;border-radius:6px;padding:.35rem .8rem}
+.np-deck{padding:.8rem 1rem 1.1rem;display:flex;justify-content:center}
+.keys{display:flex;justify-content:center;gap:.7rem;padding:1rem 1.2rem .9rem;background:linear-gradient(#34383d,#25282c);border-radius:14px 14px 18px 18px;box-shadow:inset 0 1px 0 rgba(255,255,255,.12),0 10px 30px rgba(0,0,0,.5);max-width:100%}
+.keycol{display:flex;flex-direction:column;align-items:center}
+.key{width:4.4rem;height:4.8rem;border-radius:7px 7px 5px 5px;display:grid;place-items:center;color:#e9eef3;
+  background:linear-gradient(#6a7077 0%,#454a50 18%,#3a3f44 70%,#2f3338 100%);
+  box-shadow:0 .38rem 0 #16181b,0 .6rem .7rem rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.35),inset 0 -2px 0 rgba(0,0,0,.35);
+  transition:transform .05s,box-shadow .05s}
+.key:active,.key.latched{transform:translateY(.32rem);box-shadow:0 .06rem 0 #16181b,0 .15rem .2rem rgba(0,0,0,.5),inset 0 2px .5rem rgba(0,0,0,.55)}
+.key.latched{background:linear-gradient(#41464b,#34383d)}
+.key svg{width:1.6rem;height:1.6rem;fill:currentColor}
+.key:disabled{opacity:.45}
+.kl{display:block;text-align:center;font-size:.62rem;letter-spacing:.14em;color:#9aa3ac;margin-top:.75rem;font-weight:700}
 </style>
 </head>
 <body>
@@ -274,6 +321,7 @@ dialog{max-height:90dvh;overflow:auto}
     </div>
     <p class="ph-empty" id="phEmpty">No photos yet. Tap here to choose some.</p>
     <button class="ph-hit" id="phHit" aria-label="Choose photos"></button>
+    <button class="np-open" id="npOpen" aria-label="More now playing styles">+</button>
     <div class="ph-bar">
       <div class="devpop" id="devPop" hidden><select id="mDev" aria-label="Play on"></select></div>
       <div class="mi-off" id="mOff">
@@ -433,6 +481,97 @@ dialog{max-height:90dvh;overflow:auto}
   <img class="fimg" id="fimgB" alt="">
   <div class="finfo"><span id="fClock"></span><span id="fMusic"></span></div>
 </div>
+
+<!-- now playing styles: cassette and VU meter -->
+<dialog id="npDlg" class="np" aria-label="Now playing">
+  <div class="np-top">
+    <div class="np-tabs" role="tablist" aria-label="Now playing style">
+      <button id="tabCas" role="tab" aria-selected="true">Cassette</button>
+      <button id="tabVu" role="tab" aria-selected="false">VU meter</button>
+    </div>
+    <button id="npClose" class="np-x" aria-label="Close">&times;</button>
+  </div>
+
+  <div class="np-stage">
+    <section id="viewCas">
+      <div id="cas" class="cas" role="img" aria-label="Cassette tape">
+        <img class="cas-plate" src="cassette-plate.webp" alt="" draggable="false">
+
+        <!-- cover-colour tint on the label (blends into the photo) -->
+        <svg class="tint" viewBox="0 0 379 242" aria-hidden="true">
+          <path id="casShell" fill-rule="evenodd" fill="#000" opacity=".6" d="M27 69 L38 67 H354 L359 75 V206 L345 221 H38 L25 207 V75 Z M66 104 H317 A7 7 0 0 1 324 111 V157 A7 7 0 0 1 317 164 H66 A7 7 0 0 1 59 157 V111 A7 7 0 0 1 66 104 Z"/>
+        </svg>
+
+        <!-- label print: waveform (passes behind the window) and text -->
+        <svg viewBox="0 0 379 242" aria-hidden="true">
+          <defs>
+            <clipPath id="casOut"><path clip-rule="evenodd" d="M27 69 L38 67 H354 L359 75 V206 L345 221 H38 L25 207 V75 Z M66 104 H317 A7 7 0 0 1 324 111 V157 A7 7 0 0 1 317 164 H66 A7 7 0 0 1 59 157 V111 A7 7 0 0 1 66 104 Z"/></clipPath>
+          </defs>
+          <g clip-path="url(#casOut)"><path id="casWave" fill="none" stroke="#f6f5f1" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></g>
+          <text id="casArtist" x="34" y="89.5" class="cas-label" font-size="20.5"></text>
+          <text id="casAlbum" x="348" y="89.5" text-anchor="end" class="cas-label" font-size="20.5"></text>
+          <text id="casTitle" x="192.5" y="206.5" text-anchor="middle" class="cas-label" font-size="21.5"></text>
+        </svg>
+
+        <!-- reels: sprites cut from the photo, spinning while music plays -->
+        <svg viewBox="0 0 379 242" aria-hidden="true">
+          <defs><clipPath id="casGlassClip"><rect x="63" y="108" width="255" height="51" rx="5"/></clipPath></defs>
+          <g clip-path="url(#casGlassClip)">
+            <g transform="translate(112.35 131.35)"><g class="spin"><image href="cassette-reel.webp" x="-42" y="-42" width="84" height="84"/></g></g>
+            <g transform="translate(270.3 129.74) rotate(37)"><g class="spin"><image href="cassette-reel.webp" x="-42" y="-42" width="84" height="84"/></g></g>
+            <circle id="casPackL" cx="112.35" cy="131.35" r="30" fill="none" stroke="#2a1f1a" stroke-opacity=".8" stroke-width="16"/>
+            <circle id="casRingL" cx="112.35" cy="131.35" r="38" fill="none" stroke="#e8ddd2" stroke-opacity=".25" stroke-width=".8"/>
+            <circle id="casPackR" cx="270.3" cy="129.74" r="30" fill="none" stroke="#2a1f1a" stroke-opacity=".8" stroke-width="16"/>
+            <circle id="casRingR" cx="270.3" cy="129.74" r="38" fill="none" stroke="#e8ddd2" stroke-opacity=".25" stroke-width=".8"/>
+          </g>
+        </svg>
+
+        <!-- glass reflections and the squiggle printed on the window -->
+        <svg class="front" viewBox="0 0 379 242" aria-hidden="true">
+          <defs>
+            <clipPath id="casGlassClip2"><rect x="63" y="108" width="255" height="51" rx="5"/></clipPath>
+            <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#9fb4c8" stop-opacity=".10"/></linearGradient>
+          </defs>
+          <g clip-path="url(#casGlassClip2)">
+            <rect x="63" y="108" width="255" height="51" fill="url(#gGlass)"/>
+            <path d="M63 108 H200 L172 134 H63 Z" fill="#fff" fill-opacity=".09"/>
+            <path d="M205 108 H222 L194 134 H177 Z" fill="#fff" fill-opacity=".05"/>
+            <path d="M288 159 H318 V138 Z" fill="#fff" fill-opacity=".06"/>
+            <g stroke="#fff" stroke-opacity=".15" stroke-width=".4" fill="none"><path d="M80 150 L125 134"/><path d="M215 118 L262 148"/><path d="M180 154 L194 146"/></g>
+            <rect x="63" y="108" width="255" height="51" rx="5" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="3.5"/>
+          </g>
+          <g fill="none" stroke="#f6f5f1" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path id="casWaveM"/></g>
+        </svg>
+      </div>
+    </section>
+
+    <section id="viewVu" hidden>
+      <div class="vu-row">
+        <svg id="vuL" class="vu" role="img" aria-label="Low pitch level meter"></svg>
+        <svg id="vuR" class="vu" role="img" aria-label="High pitch level meter"></svg>
+      </div>
+      <div class="vu-ctrl">
+        <button id="micBtn" class="mic-btn" aria-pressed="false">Use microphone</button>
+        <p class="vu-hint" id="vuHint"></p>
+      </div>
+    </section>
+  </div>
+
+  <div class="np-meta">
+    <p class="np-track" id="npTrack"></p>
+    <p class="np-time" id="npTime">0:00 / 0:00</p>
+  </div>
+
+  <div class="np-deck">
+    <div class="keys">
+      <div class="keycol"><button id="npPrev" class="key" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg></button><span class="kl">REW</span></div>
+      <div class="keycol"><button id="npPlay" class="key" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button><span class="kl">PLAY</span></div>
+      <div class="keycol"><button id="npPause" class="key" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button><span class="kl">PAUSE</span></div>
+      <div class="keycol"><button id="npNext" class="key" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button><span class="kl">FF</span></div>
+      <div class="keycol"><button id="npEject" class="key" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14v2H5zM12 5l7 9H5z"/></svg></button><span class="kl">EJECT</span></div>
+    </div>
+  </div>
+</dialog>
 
 <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
 
@@ -1012,7 +1151,8 @@ async function spPoll(){
     spNow = {
       playing: !!r.data.is_playing, title: it.name || "",
       artist: (it.artists || []).map(a => a.name).join(", ") || (it.show && it.show.publisher) || "",
-      art: (imgs[1] || imgs[0] || {}).url || "", dur: it.duration_ms || 0,
+      art: (imgs[1] || imgs[0] || {}).url || "", artBig: (imgs[0] || {}).url || "",
+      album: (it.album && it.album.name) || (it.show && it.show.name) || "", dur: it.duration_ms || 0,
       pos: r.data.progress_ms || 0, at: Date.now()
     };
   }else if(r.status === 200 || r.status === 204){
@@ -1036,7 +1176,8 @@ function renderDevices(){
   spDevices.forEach(d => sel.append(h("option",{value:d.id, selected:d.is_active}, d.name)));
 }
 
-function renderMusic(){
+function renderMusic(){ renderMusicBar(); if($("npDlg").open) npRender(); }
+function renderMusicBar(){
   const off = $("mOff"), on = $("mOn");
   if(!sp){
     off.hidden = false; on.hidden = true;
@@ -1376,6 +1517,302 @@ $("mDevBtn").onclick = async () => {
   if(!pop.hidden){ await spDevicesRefresh(); renderDevices(); }
 };
 ["pointerdown","keydown","touchstart"].forEach(ev => addEventListener(ev, resetIdle, {passive:true}));
+
+/* ================= now playing styles: cassette and VU meter ================= */
+const NS = "http://www.w3.org/2000/svg";
+const svgEl = (tag, attrs) => { const e = document.createElementNS(NS, tag); for(const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+const vib = ms => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} };
+const fmtMs = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ":" + pad(s % 60); };
+let npStyle = store.get("npStyle", "cassette"), npTimer = null, npArtShown = null, npTapeKey = null;
+
+/* cassette shell colour is picked from the cover art */
+const tintCache = {};
+function artTint(url){
+  if(!url) return Promise.resolve(null);
+  if(url in tintCache) return Promise.resolve(tintCache[url]);
+  return new Promise(resolve => {
+    const done = c => { tintCache[url] = c; resolve(c); };
+    const im = new Image(); im.crossOrigin = "anonymous";
+    im.onerror = () => done(null);
+    im.onload = () => {
+      try{
+        const n = 16, cv = document.createElement("canvas"); cv.width = cv.height = n;
+        const cx = cv.getContext("2d"); cx.drawImage(im, 0, 0, n, n);
+        const d = cx.getImageData(0, 0, n, n).data;
+        const buckets = Array.from({length:12}, () => ({w:0, r:0, g:0, b:0}));
+        let ar = 0, ag = 0, ab = 0, cnt = 0;
+        for(let i = 0; i < d.length; i += 4){
+          const r = d[i], g = d[i+1], b = d[i+2];
+          const mx = Math.max(r,g,b), mn = Math.min(r,g,b), dd = mx - mn;
+          ar += r; ag += g; ab += b; cnt++;
+          const s = mx ? dd / mx : 0;
+          if(s < .15) continue;
+          let hue;
+          if(mx === r) hue = ((g - b) / dd) % 6; else if(mx === g) hue = (b - r) / dd + 2; else hue = (r - g) / dd + 4;
+          const k = Math.floor(((hue + 6) % 6) * 2) % 12, w = s * (mx / 255), bk = buckets[k];
+          bk.w += w; bk.r += r * w; bk.g += g * w; bk.b += b * w;
+        }
+        const best = buckets.reduce((a, b) => b.w > a.w ? b : a, buckets[0]);
+        let r, g, b;
+        if(best.w > .5){ r = best.r / best.w; g = best.g / best.w; b = best.b / best.w; }
+        else{ r = ar / cnt; g = ag / cnt; b = ab / cnt; }
+        const mix = .62, base = 28;   // keeps the plastic dark enough for a light label and the white reels
+        done(`rgb(${Math.round(r*mix+base)},${Math.round(g*mix+base)},${Math.round(b*mix+base)})`);
+      }catch(e){ done(null); }
+    };
+    im.src = url;
+  });
+}
+
+const clipText = (t, n) => t.length > n ? t.slice(0, n - 1).trimEnd() + "..." : t;
+const hashStr = s => { let h = 2166136261; for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+
+/* a smooth audio-style squiggle; the pattern is unique to each album and track */
+function wavePath(x0, x1, cy, rnd, lobes, base, step){
+  const pts = [], n = Math.max(4, Math.round((x1 - x0) / step));
+  for(let i = 0; i <= n; i++){
+    const t = i / n;
+    let env = base;
+    for(const [c, a, wd] of lobes) env += a * Math.exp(-Math.pow((t - c) / wd, 2));
+    const amp = Math.min(38, 1.9 * env * (0.7 + 0.3 * rnd()));   // the smoothing roughly halves the peaks, so scale them back up (capped so they stay clear of the text)
+    pts.push([x0 + (x1 - x0) * t, cy + (i % 2 ? -amp : amp)]);
+  }
+  let d = `M${pts[0][0].toFixed(1)} ${pts[0][1].toFixed(1)}`;
+  for(let i = 1; i < pts.length - 1; i++){
+    const mx = (pts[i][0] + pts[i+1][0]) / 2, my = (pts[i][1] + pts[i+1][1]) / 2;
+    d += ` Q${pts[i][0].toFixed(1)} ${pts[i][1].toFixed(1)} ${mx.toFixed(1)} ${my.toFixed(1)}`;
+  }
+  const last = pts[pts.length - 1];
+  return d + ` L${last[0].toFixed(1)} ${last[1].toFixed(1)}`;
+}
+
+function labelColor(c){
+  const m = c && c.match(/\d+/g);
+  if(!m) return "#000";
+  return `rgb(${Math.round(m[0] * .4)},${Math.round(m[1] * .4)},${Math.round(m[2] * .4)})`;   // a hint of the cover colour on the black label
+}
+
+/* fit label text to its space, whatever font is available */
+function fitSvgText(el, text, maxW, size, min){
+  el.textContent = text; el.setAttribute("font-size", size);
+  let w = el.getComputedTextLength ? el.getComputedTextLength() : 0;
+  if(w > maxW){ el.setAttribute("font-size", Math.max(min, size * maxW / w).toFixed(1)); w = el.getComputedTextLength(); }
+  let t = text;
+  while(w > maxW + .5 && t.length > 4){ t = t.slice(0, -2).trimEnd(); el.textContent = t + "..."; w = el.getComputedTextLength(); }
+  return w;
+}
+
+function casDesign(artist, album, title){
+  const a = (artist || "").trim(), b = (album || "").trim(), t = (title || "").trim();
+  const wb = fitSvgText($("casAlbum"), b, 130, 20.5, 11);
+  fitSvgText($("casArtist"), a, 314 - (b ? wb + 22 : 0), 20.5, 11);
+  fitSvgText($("casTitle"), t, 300, 21.5, 12);
+  const rnd = mulberry32(hashStr((album || "") + "|" + (title || "tape")));
+  const j = () => (rnd() - .5) * .05, v = () => .8 + rnd() * .4;
+  $("casWave").setAttribute("d", wavePath(26, 358, 134, rnd, [[.06 + j(), 20 * v(), .09], [.30 + j(), 46 * v(), .12], [.70 + j(), 48 * v(), .12], [.94 + j(), 20 * v(), .09]], 2, 7.5));
+  $("casWaveM").setAttribute("d", wavePath(166, 216, 134, rnd, [[.5, 11 * v(), .35]], 2, 8));
+}
+
+function setPack(side, r){
+  const c = $("casPack" + side), ring = $("casRing" + side);
+  c.setAttribute("r", ((r + 22) / 2).toFixed(2));
+  c.setAttribute("stroke-width", Math.max(.01, r - 22).toFixed(2));
+  ring.setAttribute("r", r.toFixed(2));
+  ring.setAttribute("stroke-opacity", r > 22.5 ? ".25" : "0");
+}
+
+function npRender(){
+  const connected = !!sp, has = !!spNow, playing = !!(spNow && spNow.playing);
+  $("npDlg").classList.toggle("playing", playing);
+  const art = has ? (spNow.artBig || spNow.art || "") : "";
+  if(art !== npArtShown){
+    npArtShown = art;
+    artTint(art).then(c => { if(art === npArtShown) $("casShell").setAttribute("fill", labelColor(c)); });
+  }
+  const tapeKey = has ? (spNow.album + "|" + spNow.title) : "none";
+  if(tapeKey !== npTapeKey){
+    npTapeKey = tapeKey;
+    casDesign(has ? spNow.artist : "", has ? spNow.album : "", has ? spNow.title : (connected ? "No tape loaded" : "Not connected"));
+  }
+  $("npTrack").textContent = has ? (spNow.title + (spNow.artist ? " - " + spNow.artist : ""))
+    : (connected ? "Start playing in Spotify to load a tape." : "Connect Spotify in Connections first.");
+  $("npPlay").classList.toggle("latched", playing);
+  $("npPause").classList.toggle("latched", has && !playing);
+  $("npDlg").querySelectorAll(".key").forEach(k => { k.disabled = !connected && k.id !== "npEject"; });
+  npTick();
+}
+
+function npTick(){
+  let p = 0, pos = 0, dur = 0;
+  if(spNow){
+    dur = spNow.dur || 0;
+    pos = Math.min(spNow.pos + (spNow.playing ? Date.now() - spNow.at : 0), dur || Infinity);
+    p = dur ? pos / dur : 0;
+  }
+  setPack("L", 38 - 16 * p);   // wound tape moves from the left reel to the right
+  setPack("R", 22 + 16 * p);
+  $("npTime").textContent = fmtMs(pos) + " / " + fmtMs(dur);
+}
+
+/* ----- VU meters ----- */
+function buildVu(svg, label){
+  const id = "vf" + label, cx = 150, cy = 172, R = 118;
+  const ang = v => (-48 + ((v + 20) / 23) * 96) * Math.PI / 180;
+  const pt = (v, r) => [cx + r * Math.sin(ang(v)), cy - r * Math.cos(ang(v))];
+  const arc = (v1, v2, r) => { const a = pt(v1, r), b = pt(v2, r); return `M${a[0].toFixed(1)} ${a[1].toFixed(1)} A${r} ${r} 0 0 1 ${b[0].toFixed(1)} ${b[1].toFixed(1)}`; };
+  svg.setAttribute("viewBox", "0 0 300 190");
+  svg.innerHTML = "";
+  const defs = svgEl("defs", {}), grad = svgEl("radialGradient", {id, cx:"50%", cy:"88%", r:"95%"});
+  grad.append(svgEl("stop", {offset:"0", "stop-color":"#fff4cc"}), svgEl("stop", {offset:"1", "stop-color":"#d9b45f"}));
+  defs.append(grad); svg.append(defs);
+  svg.append(svgEl("rect", {x:2, y:2, width:296, height:186, rx:12, fill:`url(#${id})`, stroke:"#2b251d", "stroke-width":4}));
+  svg.append(svgEl("path", {d:arc(-20, 0, R), fill:"none", stroke:"#2a241c", "stroke-width":2.5}));
+  svg.append(svgEl("path", {d:arc(0, 3, R), fill:"none", stroke:"#c23b22", "stroke-width":7}));
+  [-15,-9,-8,-6,-4,-2,-1,1,2].forEach(v => {
+    const a = pt(v, R), b = pt(v, R - 7);
+    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#2a241c", "stroke-width":1.2}));
+  });
+  [-20,-10,-7,-5,-3,0,3].forEach(v => {
+    const a = pt(v, R + 3), b = pt(v, R - 12), t = pt(v, R - 27), red = v > 0;
+    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke: red ? "#c23b22" : "#2a241c", "stroke-width":2}));
+    const tx = svgEl("text", {x:t[0], y:t[1] + 4, "text-anchor":"middle", class:"vu-num", fill: red ? "#c23b22" : "#2a241c"});
+    tx.textContent = red ? "+" + v : String(v); svg.append(tx);
+  });
+  const big = svgEl("text", {x:150, y:122, "text-anchor":"middle", class:"vu-big"}); big.textContent = "VU"; svg.append(big);
+  const lab = svgEl("text", {x:18, y:34, class:"vu-small"}); lab.textContent = label; svg.append(lab);
+  const needle = svgEl("g", {transform:"rotate(-48 150 172)"});
+  needle.append(svgEl("line", {x1:cx, y1:cy, x2:cx, y2:cy - R + 6, stroke:"#1a1a1a", "stroke-width":2.4, "stroke-linecap":"round"}));
+  svg.append(needle);
+  svg.append(svgEl("path", {d:"M2 166 H298 V176 A12 12 0 0 1 286 188 H14 A12 12 0 0 1 2 176 Z", fill:"#2b251d"}));
+  svg.append(svgEl("circle", {cx:cx, cy:cy, r:11, fill:"#14110d"}));
+  svg.append(svgEl("path", {d:"M2 14 A12 12 0 0 1 14 2 H286 A12 12 0 0 1 298 14 V68 Q150 108 2 68 Z", fill:"#fff", "fill-opacity":".12"}));
+  return needle;
+}
+
+const vuNeedle = {}, vu = {l:{pos:0, ref:-40}, r:{pos:0, ref:-40}};
+let vuOn = false, vuRaf = 0;
+let micOn = store.get("vuMic", false), micStream = null, micCtx = null, anLow = null, anHigh = null, bufLow = null, bufHigh = null;
+
+async function micStart(){
+  if(micStream) return true;
+  try{
+    micStream = await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}});
+    micCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(micCtx.state === "suspended") await micCtx.resume();
+    const src = micCtx.createMediaStreamSource(micStream);
+    const lp = micCtx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 250;
+    const hp = micCtx.createBiquadFilter(); hp.type = "highpass"; hp.frequency.value = 250;
+    anLow = micCtx.createAnalyser(); anHigh = micCtx.createAnalyser();
+    anLow.fftSize = 1024; anHigh.fftSize = 1024;
+    src.connect(lp); lp.connect(anLow); src.connect(hp); hp.connect(anHigh);   // analysers only: nothing is played back
+    bufLow = new Float32Array(anLow.fftSize); bufHigh = new Float32Array(anHigh.fftSize);
+    return true;
+  }catch(e){ micStop(); return false; }
+}
+
+function micStop(){
+  if(micStream) micStream.getTracks().forEach(t => t.stop());
+  micStream = null; anLow = null; anHigh = null;
+  if(micCtx){ micCtx.close().catch(() => {}); micCtx = null; }
+}
+
+function rmsDb(an, buf){
+  an.getFloatTimeDomainData(buf);
+  let s = 0; for(let i = 0; i < buf.length; i++) s += buf[i] * buf[i];
+  return 20 * Math.log10(Math.sqrt(s / buf.length) || 1e-8);
+}
+
+function bandTarget(b, db){
+  if(db < -75) return 0;
+  b.ref = Math.max(b.ref - 0.012, db, -40);          // slowly falling peak reference, so quiet and loud rooms both read well
+  return Math.min(1, Math.max(0, ((db - b.ref) + 2 + 20) / 23));
+}
+
+function vuFrame(t){
+  vuRaf = 0;
+  if(!vuOn) return;
+  let tl = 0, tr = 0;
+  if(micOn && anLow){
+    tl = bandTarget(vu.l, rmsDb(anLow, bufLow));
+    tr = bandTarget(vu.r, rmsDb(anHigh, bufHigh));
+  }else if(spNow && spNow.playing){
+    const s = t / 1000;                              // simulated movement when the microphone is off
+    tl = .55 + .22 * Math.sin(s * 2.3) + .12 * Math.sin(s * 5.9 + 1) + .06 * Math.sin(s * 13.1);
+    tr = .5 + .2 * Math.sin(s * 3.1 + 2) + .14 * Math.sin(s * 7.7) + .07 * Math.sin(s * 15.3 + 1);
+  }
+  [["l", tl], ["r", tr]].forEach(([k, target]) => {
+    const b = vu[k]; target = Math.min(1, Math.max(0, target));
+    b.pos += (target - b.pos) * (target > b.pos ? .4 : .07);      // quick attack, slower fall, like a real needle
+    vuNeedle[k].setAttribute("transform", `rotate(${(-48 + b.pos * 96).toFixed(2)} 150 172)`);
+  });
+  vuRaf = requestAnimationFrame(vuFrame);
+}
+
+function updateMicButton(){
+  $("micBtn").textContent = micOn ? "Microphone on" : "Use microphone";
+  $("micBtn").setAttribute("aria-pressed", String(micOn));
+  $("vuHint").textContent = micOn
+    ? "Listening to the room. Nothing is recorded or sent anywhere. The two meters show low and high pitches."
+    : "Simulated needles. Turn on the microphone so they follow the sound in the room.";
+}
+
+async function vuStart(){
+  vuOn = true;
+  if(micOn){
+    const ok = await micStart();
+    if(!ok){ micOn = false; store.set("vuMic", false); toast("Couldn't use the microphone. Showing simulated needles."); }
+  }
+  updateMicButton();
+  if(vuOn && !vuRaf) vuRaf = requestAnimationFrame(vuFrame);
+}
+
+function vuStop(){ vuOn = false; if(vuRaf) cancelAnimationFrame(vuRaf); vuRaf = 0; }
+
+function setNpStyle(s){
+  npStyle = s; store.set("npStyle", s);
+  $("viewCas").hidden = s !== "cassette"; $("viewVu").hidden = s !== "vu";
+  $("tabCas").setAttribute("aria-selected", String(s === "cassette"));
+  $("tabVu").setAttribute("aria-selected", String(s === "vu"));
+  if(s === "vu") vuStart(); else { vuStop(); micStop(); }
+}
+
+function openNp(){
+  $("npDlg").showModal();
+  setNpStyle(npStyle); npRender();
+  clearInterval(npTimer); npTimer = setInterval(npTick, 250);
+}
+
+/* ================= wiring for now playing styles ================= */
+vuNeedle.l = buildVu($("vuL"), "LOW");
+vuNeedle.r = buildVu($("vuR"), "HIGH");
+$("npOpen").onclick = openNp;
+$("npClose").onclick = () => $("npDlg").close();
+$("npDlg").addEventListener("close", () => { clearInterval(npTimer); vuStop(); micStop(); });
+if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if($("npDlg").open){ npTapeKey = null; npRender(); } });
+$("tabCas").onclick = () => setNpStyle("cassette");
+$("tabVu").onclick = () => setNpStyle("vu");
+$("micBtn").onclick = async () => {
+  micOn = !micOn; store.set("vuMic", micOn);
+  if(micOn){
+    const ok = await micStart();
+    if(!ok){ micOn = false; store.set("vuMic", false); toast("Couldn't use the microphone. Check the permission and try again."); }
+  }else micStop();
+  updateMicButton();
+};
+const keyAct = (id, fn) => { $(id).onclick = () => { vib(12); fn(); }; };
+keyAct("npPrev", () => spControl("prev"));
+keyAct("npNext", () => spControl("next"));
+keyAct("npPlay", () => { if(!(spNow && spNow.playing)) spControl("toggle"); });
+keyAct("npPause", () => { if(spNow && spNow.playing) spControl("toggle"); });
+keyAct("npEject", () => $("npDlg").close());
 
 setInterval(spPoll, 5000);
 setInterval(updateProgress, 1000);
