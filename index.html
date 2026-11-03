@@ -71,7 +71,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   color:#d8dce2;display:grid;place-items:center;
   box-shadow:0 2px 0 #0a0a0b,inset 0 1px 0 rgba(255,255,255,.18);
 }
-.faceplate{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;justify-content:space-evenly;gap:1rem;padding:3.4rem 1.4rem 1.4rem}
+.faceplate{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;justify-content:space-evenly;gap:1rem;padding:4rem 2.2rem 2.2rem 2.2rem}
 
 /* ---------- VU meters ---------- */
 .meters{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -102,7 +102,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   border-radius:4px 4px 0 0;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22);
 }
-.cas{position:relative;isolation:isolate;width:78%;margin:0 auto;aspect-ratio:379/242}
+.cas{position:relative;isolation:isolate;width:86%;margin:0 auto;aspect-ratio:379/242}
 .cas-plate{position:absolute;inset:0;width:100%;height:100%;display:block;filter:drop-shadow(0 14px 18px rgba(0,0,0,.55));user-select:none;-webkit-user-drag:none}
 .cas svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
 .cas .front,.cas .tint{pointer-events:none}
@@ -157,14 +157,26 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 .key:disabled{opacity:.4}
 
 @media (orientation:landscape){
-  .faceplate{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);grid-template-areas:"meters bay" "meters info" "meters keys";align-content:center;align-items:center;gap:.8rem 1.6rem;padding-top:1rem;padding-bottom:1rem}
+  .faceplate{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);grid-template-areas:"meters bay" "meters info" "meters keys";align-content:center;align-items:center;gap:.8rem 1.6rem;padding-top:.5rem;padding-bottom:1.2rem}
   .meters{grid-area:meters;grid-template-columns:1fr}
   .bay{grid-area:bay}
   .info{grid-area:info;gap:.35rem}
   .keys{grid-area:keys}
   .bay-in{padding:2rem .8rem .7rem}
-  .bay-in .cas{width:62%}
+  .bay-in .cas{width:68%}
   .key{width:3.6rem;height:3.5rem}
+}
+
+/* translucent glass screen overlay */
+.bay-in::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  background:linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.3) 100%), rgba(0,0,0,0.2);
+  pointer-events:none;
+  border-radius:4px;
+  box-shadow:inset 0 0 30px rgba(0,0,0,0.6);
+  z-index:10;
 }
 </style>
 </head>
@@ -317,7 +329,63 @@ const spCid = () => SPOTIFY_CLIENT_ID || store.get("spClientId", "");
 /* ================= helpers ================= */
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2,"0");
-const vib = ms => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} };
+
+/* ================= mechanical haptic click sound (Web Audio API) ================= */
+let audioCtx = null;
+window.playClickSound = playClickSound;
+function playClickSound(){
+  try{
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+    
+    const t = audioCtx.currentTime;
+    
+    // Mechanical solenoid relay click: a dual-component thud + sharp metallic snap
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(120, t);
+    osc.frequency.exponentialRampToValueAtTime(30, t + 0.03);
+    
+    gain.gain.setValueAtTime(0.4, t);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
+    
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    
+    osc.start(t);
+    osc.stop(t + 0.04);
+    
+    // Sharp high-frequency click/snap (metallic latch)
+    const bufferSize = audioCtx.sampleRate * 0.015;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    
+    const noise = audioCtx.createBufferSource();
+    noise.buffer = buffer;
+    
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.setValueAtTime(2500, t);
+    
+    const noiseGain = audioCtx.createGain();
+    noiseGain.gain.setValueAtTime(0.25, t);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.012);
+    
+    noise.connect(filter);
+    filter.connect(noiseGain);
+    noiseGain.connect(audioCtx.destination);
+    
+    noise.start(t);
+    noise.stop(t + 0.015);
+  }catch(e){}
+}
+
+const vib = ms => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} playClickSound(); };
 const fmtMs = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ":" + pad(s % 60); };
 
 function h(tag, attrs = {}, ...kids){
@@ -658,41 +726,182 @@ function npTick(){
 
 /* ----- VU meters ----- */
 function buildVu(svg, label){
-  const id = "vf" + label, cx = 150, cy = 172, R = 118;
-  const ang = v => (-48 + ((v + 20) / 23) * 96) * Math.PI / 180;
+  const id = "vf" + label, cx = 150, cy = 185, R = 125;
+  
+  // Custom angle mapping for classic VU scale: -20 to +3
+  const scaleMap = {
+    "-20": -46, "-15": -38, "-10": -28, "-7": -21, "-5": -16, 
+    "-3": -10, "-2": -6, "-1": -2, "0": 4, "1": 18, "2": 32, "3": 46
+  };
+  const ang = v => {
+    // interpolate or find closest
+    const keys = Object.keys(scaleMap).map(Number).sort((a,b)=>a-b);
+    if(scaleMap[v] !== undefined) return scaleMap[v] * Math.PI / 180;
+    // linear approximation between surrounding keys
+    for(let i=0; i<keys.length-1; i++){
+      if(v >= keys[i] && v <= keys[i+1]){
+        const f = (v - keys[i]) / (keys[i+1] - keys[i]);
+        return (scaleMap[keys[i]] + f * (scaleMap[keys[i+1]] - scaleMap[keys[i]])) * Math.PI / 180;
+      }
+    }
+    return (-46 + ((v + 20) / 23) * 92) * Math.PI / 180;
+  };
+
   const pt = (v, r) => [cx + r * Math.sin(ang(v)), cy - r * Math.cos(ang(v))];
-  const arc = (v1, v2, r) => { const a = pt(v1, r), b = pt(v2, r); return `M${a[0].toFixed(1)} ${a[1].toFixed(1)} A${r} ${r} 0 0 1 ${b[0].toFixed(1)} ${b[1].toFixed(1)}`; };
+  
+  // smooth arc generator
+  const arcPath = (v1, v2, r, steps=30) => {
+    let d = "";
+    for(let i=0; i<=steps; i++){
+      const v = v1 + (v2 - v1) * (i/steps);
+      const [x, y] = pt(v, r);
+      d += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1);
+    }
+    return d;
+  };
+
   svg.setAttribute("viewBox", "0 0 300 190");
   svg.innerHTML = "";
-  const defs = svgEl("defs", {}), grad = svgEl("linearGradient", {id, x1:"0", y1:"0", x2:"0", y2:"1"});
-  grad.append(svgEl("stop", {offset:"0", "stop-color":"#fbfaf2"}), svgEl("stop", {offset:"1", "stop-color":"#dedbc9"}));
-  defs.append(grad); svg.append(defs);
-  svg.append(svgEl("rect", {x:0, y:0, width:300, height:190, rx:9, fill:"#0b0b0c"}));
-  svg.append(svgEl("rect", {x:1.5, y:1.5, width:297, height:187, rx:8, fill:"none", stroke:"#3a3a3e", "stroke-width":1.5}));
+
+  const defs = svgEl("defs", {});
+  
+  // Warm vintage amber incandescent backlight gradient
+  const grad = svgEl("linearGradient", {id, x1:"0", y1:"0", x2:"0", y2:"1"});
+  grad.append(
+    svgEl("stop", {offset:"0%", "stop-color":"#ffe699"}),
+    svgEl("stop", {offset:"35%", "stop-color":"#ffb333"}),
+    svgEl("stop", {offset:"85%", "stop-color":"#e66b00"}),
+    svgEl("stop", {offset:"100%", "stop-color":"#b34700"})
+  );
+  
+  // Radial glow for bulb warmth at top center
+  const radialGrad = svgEl("radialGradient", {id: id+"glow", cx:"50%", cy:"15%", r:"70%"});
+  radialGrad.append(
+    svgEl("stop", {offset:"0%", "stop-color":"#fff3cc", "stop-opacity":"0.9"}),
+    svgEl("stop", {offset:"60%", "stop-color":"#ff991a", "stop-opacity":"0.3"}),
+    svgEl("stop", {offset:"100%", "stop-color":"#cc5200", "stop-opacity":"0.0"})
+  );
+
+  defs.append(grad, radialGrad);
+  svg.append(defs);
+
+  // Meter outer housing & bezel
+  svg.append(svgEl("rect", {x:0, y:0, width:300, height:190, rx:9, fill:"#08080a"}));
+  svg.append(svgEl("rect", {x:1.5, y:1.5, width:297, height:187, rx:8, fill:"none", stroke:"#2d2d33", "stroke-width":2}));
+  svg.append(svgEl("rect", {x:8, y:8, width:284, height:174, rx:4, fill:"#121215", stroke:"#000", "stroke-width":2}));
+  
+  // Meter face background (amber backlight)
   svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:`url(#${id})`}));
-  svg.append(svgEl("path", {d:arc(-20, 0, R), fill:"none", stroke:"#1d1d1d", "stroke-width":2.4}));
-  svg.append(svgEl("path", {d:arc(0, 3, R), fill:"none", stroke:"#c23b22", "stroke-width":7}));
-  [-15,-9,-8,-6,-4,-2,-1,1,2].forEach(v => {
-    const a = pt(v, R), b = pt(v, R - 7);
-    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#1d1d1d", "stroke-width":1.2}));
+  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:`url(#${id}glow)`}));
+
+  // Black scale arcs (-20 to 0 normal, 0 to +3 red zone)
+  svg.append(svgEl("path", {d:arcPath(-20, 0, R), fill:"none", stroke:"#111113", "stroke-width":2.5}));
+  svg.append(svgEl("path", {d:arcPath(0, 3, R), fill:"none", stroke:"#c92a1d", "stroke-width":4.5}));
+
+  // Minor tick marks and dots (like reference photo)
+  const minorTicks = [-20,-15,-10,-7,-5,-3,-2,-1,0,1,2,3];
+  minorTicks.forEach(v => {
+    const isMajor = [-20,-10,-7,-5,-3,-2,-1,0,1,2,3].includes(v);
+    const tickLen = isMajor ? 10 : 6;
+    const a = pt(v, R), b = pt(v, R - tickLen);
+    const isRed = v > 0;
+    svg.append(svgEl("line", {
+      x1: a[0].toFixed(1), y1: a[1].toFixed(1),
+      x2: b[0].toFixed(1), y2: b[1].toFixed(1),
+      stroke: isRed ? "#c92a1d" : "#111113",
+      "stroke-width": isMajor ? 2 : 1.2
+    }));
   });
-  [-20,-10,-7,-5,-3,0,3].forEach(v => {
-    const a = pt(v, R + 3), b = pt(v, R - 12), t = pt(v, R - 27), red = v > 0;
-    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke: red ? "#c23b22" : "#1d1d1d", "stroke-width":2}));
-    const tx = svgEl("text", {x:t[0], y:t[1] + 4, "text-anchor":"middle", class:"vu-num", style: red ? "fill:#c23b22" : ""});
-    tx.textContent = red ? "+" + v : String(v); svg.append(tx);
+
+  // Intermediate dot markers for -15, -8, -6, -4 (as seen in classic meters)
+  [-17.5, -12.5, -8.5, -6, -4, -2.5, -1.5].forEach(v => {
+    const p = pt(v, R - 4);
+    svg.append(svgEl("circle", {cx: p[0].toFixed(1), cy: p[1].toFixed(1), r: 1.2, fill: "#111113"}));
   });
-  const big = svgEl("text", {x:150, y:122, "text-anchor":"middle", class:"vu-big"}); big.textContent = "VU"; svg.append(big);
-  const lab = svgEl("text", {x:26, y:40, class:"vu-small"}); lab.textContent = label; svg.append(lab);
-  const needle = svgEl("g", {transform:"rotate(-48 150 172)"});
-  needle.append(svgEl("line", {x1:cx, y1:cy, x2:cx, y2:cy - R + 6, stroke:"#141414", "stroke-width":2.2, "stroke-linecap":"round"}));
-  svg.append(needle);
-  svg.append(svgEl("path", {d:"M12 164 H288 V178 H12 Z", fill:"#19191b"}));
-  svg.append(svgEl("circle", {cx:cx, cy:cy, r:10, fill:"#0f0f11"}));
-  svg.append(svgEl("path", {d:"M12 12 H288 V62 Q150 98 12 62 Z", fill:"#fff", "fill-opacity":".10"}));
-  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:"none", stroke:"#000", "stroke-opacity":".35", "stroke-width":3}));
-  return needle;
+
+  // Numbers (-20, -10, -7, -5, -3, -2, -1, 0, 1, 2, 3)
+  const numDefs = [
+    {v:-20, text:"20", xOff:0}, {v:-10, text:"10", xOff:0}, {v:-7, text:"7", xOff:0},
+    {v:-5, text:"5", xOff:0}, {v:-3, text:"3", xOff:0}, {v:-2, text:"2", xOff:0},
+    {v:-1, text:"1", xOff:0}, {v:0, text:"0", xOff:0}, {v:1, text:"1", xOff:0},
+    {v:2, text:"2", xOff:0}, {v:3, text:"3", xOff:0}
+  ];
+
+  numDefs.forEach(item => {
+    const t = pt(item.v, R - 24);
+    const isRed = item.v > 0;
+    const tx = svgEl("text", {
+      x: t[0].toFixed(1),
+      y: (t[1] + 5).toFixed(1),
+      "text-anchor": "middle",
+      class: "vu-num",
+      style: `font-family: 'Montserrat', 'Helvetica Neue', sans-serif; font-weight: 700; font-size: ${item.v === -20 || item.v === -10 ? '15px' : '14px'}; fill: ${isRed ? '#c92a1d' : '#111113'};`
+    });
+    tx.textContent = item.v < 0 ? String(Math.abs(item.v)) : String(item.v);
+    svg.append(tx);
+  });
+
+  // Plus and Minus signs at top corners of scale
+  const minusPos = pt(-20, R - 38);
+  const mTxt = svgEl("text", {x: minusPos[0].toFixed(1), y: (minusPos[1]+4).toFixed(1), "text-anchor":"middle", style:"font-family:sans-serif; font-weight:800; font-size:16px; fill:#111113;"});
+  mTxt.textContent = "-";
+  svg.append(mTxt);
+
+  const plusPos = pt(3, R - 38);
+  const pTxt = svgEl("text", {x: plusPos[0].toFixed(1), y: (plusPos[1]+5).toFixed(1), "text-anchor":"middle", style:"font-family:sans-serif; font-weight:800; font-size:16px; fill:#c92a1d;"});
+  pTxt.textContent = "+";
+  svg.append(pTxt);
+
+  // VU watermark logo at bottom right
+  const vuLogo = svgEl("text", {x: 235, y: 135, "text-anchor":"middle", style:"font-family:'Montserrat', sans-serif; font-weight:800; font-style:italic; font-size:24px; fill:#111113; letter-spacing:1px;"});
+  vuLogo.textContent = "VU";
+  svg.append(vuLogo);
+
+  // Needle group rotating around (cx, cy)
+  const needleGroup = svgEl("g", {transform: "rotate(-46 150 185)"});
+  
+  // Tapered classic black needle with a fine red tip
+  // Needle blade
+  const needleBlade = svgEl("path", {
+    d: "M148.5 185 L149.3 " + (cy - R + 8) + " L150.7 " + (cy - R + 8) + " L151.5 185 Z",
+    fill: "#1a1a1e"
+  });
+  // Red indicator tip
+  const redTip = svgEl("path", {
+    d: "M149.3 " + (cy - R + 25) + " L149.5 " + (cy - R + 8) + " L150.5 " + (cy - R + 8) + " L150.7 " + (cy - R + 25) + " Z",
+    fill: "#e62e00"
+  });
+  needleGroup.append(needleBlade, redTip);
+  svg.append(needleGroup);
+
+  // Center pivot jewel cap (shiny black & metallic cap with highlight)
+  const pivotBase = svgEl("circle", {cx: cx, cy: cy, r: 12, fill: "#1a1a1e", stroke: "#000", "stroke-width": 1.5});
+  const pivotCap = svgEl("circle", {cx: cx, cy: cy, r: 8, fill: "radial-gradient(circle at 35% 35%, #444, #111)"});
+  const pivotPin = svgEl("circle", {cx: cx - 2, cy: cy - 2, r: 3, fill: "#666", opacity: "0.6"});
+  svg.append(pivotBase, pivotCap, pivotPin);
+
+  // Realistic glass reflection / glossy diagonal sheen overlay across the meter window
+  const glassGlare = svgEl("path", {
+    d: "M12 12 L180 12 L12 120 Z",
+    fill: "url(#glassShine)",
+    opacity: "0.35"
+  });
+  
+  const glassGrad = svgEl("linearGradient", {id: "glassShine", x1:"0", y1:"0", x2:"1", y2:"1"});
+  glassGrad.append(
+    svgEl("stop", {offset:"0%", "stop-color":"#ffffff", "stop-opacity":"0.7"}),
+    svgEl("stop", {offset:"50%", "stop-color":"#ffffff", "stop-opacity":"0.1"}),
+    svgEl("stop", {offset:"100%", "stop-color":"#ffffff", "stop-opacity":"0.0"})
+  );
+  svg.querySelector("defs").append(glassGrad);
+  svg.append(glassGlare);
+
+  // Outer bezel border frame shadow & 3D bevel overlay
+  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:"none", stroke:"#000", "stroke-opacity":".6", "stroke-width":3}));
+
+  return needleGroup;
 }
+
 
 const vuNeedle = {}, vu = {l:{pos:0, ref:-40}, r:{pos:0, ref:-40}};
 let vuOn = false, vuRaf = 0;
@@ -748,7 +957,7 @@ function vuFrame(t){
   [["l", tl], ["r", tr]].forEach(([k, target]) => {
     const b = vu[k]; target = Math.min(1, Math.max(0, target));
     b.pos += (target - b.pos) * (target > b.pos ? .4 : .07);
-    vuNeedle[k].setAttribute("transform", `rotate(${(-48 + b.pos * 96).toFixed(2)} 150 172)`);
+    vuNeedle[k].setAttribute("transform", `rotate(${(-46 + b.pos * 92).toFixed(2)} 150 185)`);
     $(k === "l" ? "pkL" : "pkR").classList.toggle("on", b.pos > .88);
   });
   vuRaf = requestAnimationFrame(vuFrame);
@@ -771,6 +980,14 @@ async function vuStart(){
   updateMicButton();
   if(vuOn && !vuRaf) vuRaf = requestAnimationFrame(vuFrame);
 }
+
+
+document.addEventListener('pointerdown', e => {
+  const btn = e.target.closest('button');
+  if(btn && !btn.disabled){
+    playClickSound();
+  }
+});
 
 /* ================= initialization & deck wiring ================= */
 (function metalGrain(){
