@@ -258,6 +258,56 @@ dialog.np.playing .spin{animation-play-state:running}
 .key svg{width:1.6rem;height:1.6rem;fill:currentColor}
 .key:disabled{opacity:.45}
 .kl{display:block;text-align:center;font-size:.62rem;letter-spacing:.14em;color:#9aa3ac;margin-top:.75rem;font-weight:700}
+
+/* ---------- cassette deck faceplate (cassette, VU meters and keys on one panel) ---------- */
+dialog.np{color:#1d1e21;background:var(--grain,none),repeating-linear-gradient(180deg,rgba(255,255,255,.12) 0 1px,rgba(0,0,0,.04) 1px 2px,rgba(255,255,255,.05) 2px 3px),linear-gradient(90deg,#b4b5b9 0%,#e9eaec 16%,#cdced1 38%,#f1f2f3 60%,#c4c5c9 84%,#dcdde0 100%)}
+dialog.np::backdrop{background:#000}
+.np-x{position:absolute;top:.8rem;right:.8rem;z-index:5;width:2.6rem;height:2.6rem;border-radius:50%;background:linear-gradient(#3a3b3f,#1b1c1f);color:#e6e7e9;font-size:1.5rem;line-height:1;box-shadow:0 2px 0 #0a0a0b,inset 0 1px 0 rgba(255,255,255,.25)}
+.faceplate{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;justify-content:space-evenly;gap:1rem;padding:3.4rem 1.4rem 1.4rem}
+.meters{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.vu-mod{display:flex;flex-direction:column;gap:.4rem;min-width:0}
+.peak{display:flex;align-items:center;gap:.55rem;font:700 .7rem 'Instrument Sans',system-ui,sans-serif;letter-spacing:.16em;color:#2a2b2e}
+.led{display:inline-block;width:.8rem;height:.8rem;border-radius:50%;background:radial-gradient(circle at 35% 30%,#8a2a2a,#3a0c0c);box-shadow:inset 0 1px 2px rgba(0,0,0,.6),0 0 0 2px #b9babe,0 0 0 3px #7d7e82}
+.led.on{background:radial-gradient(circle at 35% 30%,#ff9a8f,#ff2d1f);box-shadow:0 0 .7rem #ff3b30,0 0 0 2px #b9babe,0 0 0 3px #7d7e82}
+.vu{width:100%;height:auto;max-height:none;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45))}
+.vu-num{fill:#1d1d1d}
+.vu-big{fill:#222;opacity:.8}
+.vu-small{fill:#222}
+
+.bay{position:relative;padding:.9rem;border-radius:8px;background:linear-gradient(#f5f5f6,#c9cacd 50%,#e6e7e9);box-shadow:0 0 0 1px #7b7c80,inset 0 1px 0 #fff,0 6px 14px rgba(0,0,0,.35)}
+.bay-in{position:relative;border-radius:4px;background:linear-gradient(#0a0a0b,#16171a 60%,#0c0c0e);box-shadow:inset 0 6px 14px rgba(0,0,0,.9),inset 0 0 0 1px #000;padding:2.2rem 1rem 1.1rem}
+.bay-in::before{content:"";position:absolute;left:0;right:0;top:0;height:1.5rem;background:linear-gradient(#64666b,#2c2d31);border-radius:4px 4px 0 0;box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.bay-in .cas{width:78%;margin:0 auto}
+.bay-foot{height:1.1rem;margin:.55rem -.1rem -.1rem;border-radius:3px;background:linear-gradient(#e9eaec,#a9aaae);box-shadow:inset 0 1px 0 #fff,0 0 0 1px #75767a;display:grid;place-items:center}
+.bay-foot i{width:.6rem;height:.6rem;border-radius:50%;background:radial-gradient(circle at 35% 30%,#555,#111);box-shadow:0 0 0 2px #9a9b9f}
+
+.info{display:flex;flex-direction:column;align-items:center;gap:.55rem}
+.readout{display:flex;justify-content:center;align-items:center;gap:1rem;flex-wrap:wrap}
+.mic-sw{display:inline-flex;align-items:center;gap:.55rem;padding:.55rem .9rem;border-radius:4px;background:linear-gradient(#34353a,#1a1b1e);color:#e0e1e3;font:700 .72rem 'Instrument Sans',system-ui,sans-serif;letter-spacing:.16em;box-shadow:0 .22rem 0 #08090a,inset 0 1px 0 rgba(255,255,255,.22);min-height:2.6rem}
+.mic-sw .led{width:.65rem;height:.65rem;background:#2a3a2a;box-shadow:none}
+.mic-sw[aria-pressed="true"] .led{background:#47ff7a;box-shadow:0 0 .55rem #47ff7a}
+.np-track{color:#2b2c2f;font-size:.95rem;text-align:center;font-weight:600;max-width:100%}
+.vu-hint{color:#4b4c50;font-size:.78rem;text-align:center;max-width:36rem}
+
+.keys{display:flex;justify-content:center;gap:.55rem;padding:0;background:none;box-shadow:none;border-radius:0}
+.keycol{display:flex;flex-direction:column;align-items:center;gap:.4rem}
+.kl{margin:0;color:#2b2c2f;font:700 .68rem 'Instrument Sans',system-ui,sans-serif;letter-spacing:.14em;display:block;text-align:center}
+.slot{padding:.3rem .3rem .55rem;border-radius:3px;background:linear-gradient(#050506,#202125);box-shadow:inset 0 3px 7px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.75)}
+.key{width:4.1rem;height:4.4rem;border-radius:2px 2px 3px 3px;color:#2a2b2f;background:linear-gradient(#fbfbfb,#d4d5d8 50%,#aeafb3);border:1px solid #6f7075;box-shadow:inset 0 1px 0 #fff,0 .4rem 0 #45464a}
+.key:active,.key.latched{transform:translateY(.35rem);box-shadow:inset 0 1px 0 #fff,0 .05rem 0 #45464a}
+.key.latched{background:linear-gradient(#e8e8ea,#bdbec2)}
+.key svg{width:1.5rem;height:1.5rem;fill:currentColor}
+.key:disabled{opacity:.5}
+@media (orientation:landscape){
+  .faceplate{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);grid-template-areas:"meters bay" "meters info" "meters keys";align-content:center;align-items:center;gap:1rem 1.6rem}
+  .meters{grid-area:meters;grid-template-columns:1fr}
+  .bay{grid-area:bay} .info{grid-area:info} .keys{grid-area:keys}
+  .faceplate{padding-top:1rem;padding-bottom:1rem;gap:.8rem 1.6rem}
+  .bay-in{padding:2rem .8rem .7rem}
+  .bay-in .cas{width:62%}
+  .info{gap:.35rem}
+  .key{width:3.6rem;height:3.5rem}
+}
 </style>
 </head>
 <body>
@@ -484,17 +534,16 @@ dialog.np.playing .spin{animation-play-state:running}
 
 <!-- now playing styles: cassette and VU meter -->
 <dialog id="npDlg" class="np" aria-label="Now playing">
-  <div class="np-top">
-    <div class="np-tabs" role="tablist" aria-label="Now playing style">
-      <button id="tabCas" role="tab" aria-selected="true">Cassette</button>
-      <button id="tabVu" role="tab" aria-selected="false">VU meter</button>
+  <button id="npClose" class="np-x" aria-label="Close">&times;</button>
+  <div class="faceplate">
+    <div class="meters">
+      <div class="vu-mod"><div class="peak"><i id="pkL" class="led"></i><span>PEAK</span></div><svg id="vuL" class="vu" role="img" aria-label="Low pitch level meter"></svg></div>
+      <div class="vu-mod"><div class="peak"><i id="pkR" class="led"></i><span>PEAK</span></div><svg id="vuR" class="vu" role="img" aria-label="High pitch level meter"></svg></div>
     </div>
-    <button id="npClose" class="np-x" aria-label="Close">&times;</button>
-  </div>
 
-  <div class="np-stage">
-    <section id="viewCas">
-      <div id="cas" class="cas" role="img" aria-label="Cassette tape">
+    <div class="bay">
+      <div class="bay-in">
+        <div id="cas" class="cas" role="img" aria-label="Cassette tape">
         <img class="cas-plate" src="cassette-plate.webp" alt="" draggable="false">
 
         <!-- cover-colour tint on the label (blends into the photo) -->
@@ -543,32 +592,25 @@ dialog.np.playing .spin{animation-play-state:running}
           <g fill="none" stroke="#f6f5f1" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path id="casWaveM"/></g>
         </svg>
       </div>
-    </section>
-
-    <section id="viewVu" hidden>
-      <div class="vu-row">
-        <svg id="vuL" class="vu" role="img" aria-label="Low pitch level meter"></svg>
-        <svg id="vuR" class="vu" role="img" aria-label="High pitch level meter"></svg>
       </div>
-      <div class="vu-ctrl">
-        <button id="micBtn" class="mic-btn" aria-pressed="false">Use microphone</button>
-        <p class="vu-hint" id="vuHint"></p>
+      <div class="bay-foot"><i></i></div>
+    </div>
+
+    <div class="info">
+      <div class="readout">
+        <button id="micBtn" class="mic-sw" aria-pressed="false" aria-label="Use the microphone for the meters"><i class="led"></i><span id="micTxt">SIM</span></button>
+        <p class="np-time" id="npTime">0:00 / 0:00</p>
       </div>
-    </section>
-  </div>
+      <p class="np-track" id="npTrack"></p>
+      <p class="vu-hint" id="vuHint"></p>
+    </div>
 
-  <div class="np-meta">
-    <p class="np-track" id="npTrack"></p>
-    <p class="np-time" id="npTime">0:00 / 0:00</p>
-  </div>
-
-  <div class="np-deck">
     <div class="keys">
-      <div class="keycol"><button id="npPrev" class="key" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg></button><span class="kl">REW</span></div>
-      <div class="keycol"><button id="npPlay" class="key" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button><span class="kl">PLAY</span></div>
-      <div class="keycol"><button id="npPause" class="key" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button><span class="kl">PAUSE</span></div>
-      <div class="keycol"><button id="npNext" class="key" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button><span class="kl">FF</span></div>
-      <div class="keycol"><button id="npEject" class="key" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14v2H5zM12 5l7 9H5z"/></svg></button><span class="kl">EJECT</span></div>
+      <div class="keycol"><span class="kl">REW</span><div class="slot"><button id="npPrev" class="key" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg></button></div></div>
+      <div class="keycol"><span class="kl">FF</span><div class="slot"><button id="npNext" class="key" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button></div></div>
+      <div class="keycol"><span class="kl">PLAY</span><div class="slot"><button id="npPlay" class="key" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div></div>
+      <div class="keycol"><span class="kl">PAUSE</span><div class="slot"><button id="npPause" class="key" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button></div></div>
+      <div class="keycol"><span class="kl">EJECT</span><div class="slot"><button id="npEject" class="key" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14v2H5zM12 5l7 9H5z"/></svg></button></div></div>
     </div>
   </div>
 </dialog>
@@ -1670,30 +1712,33 @@ function buildVu(svg, label){
   const arc = (v1, v2, r) => { const a = pt(v1, r), b = pt(v2, r); return `M${a[0].toFixed(1)} ${a[1].toFixed(1)} A${r} ${r} 0 0 1 ${b[0].toFixed(1)} ${b[1].toFixed(1)}`; };
   svg.setAttribute("viewBox", "0 0 300 190");
   svg.innerHTML = "";
-  const defs = svgEl("defs", {}), grad = svgEl("radialGradient", {id, cx:"50%", cy:"88%", r:"95%"});
-  grad.append(svgEl("stop", {offset:"0", "stop-color":"#fff4cc"}), svgEl("stop", {offset:"1", "stop-color":"#d9b45f"}));
+  const defs = svgEl("defs", {}), grad = svgEl("linearGradient", {id, x1:"0", y1:"0", x2:"0", y2:"1"});
+  grad.append(svgEl("stop", {offset:"0", "stop-color":"#fbfaf2"}), svgEl("stop", {offset:"1", "stop-color":"#dedbc9"}));
   defs.append(grad); svg.append(defs);
-  svg.append(svgEl("rect", {x:2, y:2, width:296, height:186, rx:12, fill:`url(#${id})`, stroke:"#2b251d", "stroke-width":4}));
-  svg.append(svgEl("path", {d:arc(-20, 0, R), fill:"none", stroke:"#2a241c", "stroke-width":2.5}));
+  svg.append(svgEl("rect", {x:0, y:0, width:300, height:190, rx:9, fill:"#0b0b0c"}));
+  svg.append(svgEl("rect", {x:1.5, y:1.5, width:297, height:187, rx:8, fill:"none", stroke:"#3a3a3e", "stroke-width":1.5}));
+  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:`url(#${id})`}));
+  svg.append(svgEl("path", {d:arc(-20, 0, R), fill:"none", stroke:"#1d1d1d", "stroke-width":2.4}));
   svg.append(svgEl("path", {d:arc(0, 3, R), fill:"none", stroke:"#c23b22", "stroke-width":7}));
   [-15,-9,-8,-6,-4,-2,-1,1,2].forEach(v => {
     const a = pt(v, R), b = pt(v, R - 7);
-    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#2a241c", "stroke-width":1.2}));
+    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke:"#1d1d1d", "stroke-width":1.2}));
   });
   [-20,-10,-7,-5,-3,0,3].forEach(v => {
     const a = pt(v, R + 3), b = pt(v, R - 12), t = pt(v, R - 27), red = v > 0;
-    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke: red ? "#c23b22" : "#2a241c", "stroke-width":2}));
-    const tx = svgEl("text", {x:t[0], y:t[1] + 4, "text-anchor":"middle", class:"vu-num", fill: red ? "#c23b22" : "#2a241c"});
+    svg.append(svgEl("line", {x1:a[0], y1:a[1], x2:b[0], y2:b[1], stroke: red ? "#c23b22" : "#1d1d1d", "stroke-width":2}));
+    const tx = svgEl("text", {x:t[0], y:t[1] + 4, "text-anchor":"middle", class:"vu-num", style: red ? "fill:#c23b22" : ""});
     tx.textContent = red ? "+" + v : String(v); svg.append(tx);
   });
   const big = svgEl("text", {x:150, y:122, "text-anchor":"middle", class:"vu-big"}); big.textContent = "VU"; svg.append(big);
-  const lab = svgEl("text", {x:18, y:34, class:"vu-small"}); lab.textContent = label; svg.append(lab);
+  const lab = svgEl("text", {x:26, y:40, class:"vu-small"}); lab.textContent = label; svg.append(lab);
   const needle = svgEl("g", {transform:"rotate(-48 150 172)"});
-  needle.append(svgEl("line", {x1:cx, y1:cy, x2:cx, y2:cy - R + 6, stroke:"#1a1a1a", "stroke-width":2.4, "stroke-linecap":"round"}));
+  needle.append(svgEl("line", {x1:cx, y1:cy, x2:cx, y2:cy - R + 6, stroke:"#141414", "stroke-width":2.2, "stroke-linecap":"round"}));
   svg.append(needle);
-  svg.append(svgEl("path", {d:"M2 166 H298 V176 A12 12 0 0 1 286 188 H14 A12 12 0 0 1 2 176 Z", fill:"#2b251d"}));
-  svg.append(svgEl("circle", {cx:cx, cy:cy, r:11, fill:"#14110d"}));
-  svg.append(svgEl("path", {d:"M2 14 A12 12 0 0 1 14 2 H286 A12 12 0 0 1 298 14 V68 Q150 108 2 68 Z", fill:"#fff", "fill-opacity":".12"}));
+  svg.append(svgEl("path", {d:"M12 164 H288 V178 H12 Z", fill:"#19191b"}));
+  svg.append(svgEl("circle", {cx:cx, cy:cy, r:10, fill:"#0f0f11"}));
+  svg.append(svgEl("path", {d:"M12 12 H288 V62 Q150 98 12 62 Z", fill:"#fff", "fill-opacity":".10"}));
+  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:"none", stroke:"#000", "stroke-opacity":".35", "stroke-width":3}));
   return needle;
 }
 
@@ -1752,16 +1797,17 @@ function vuFrame(t){
     const b = vu[k]; target = Math.min(1, Math.max(0, target));
     b.pos += (target - b.pos) * (target > b.pos ? .4 : .07);      // quick attack, slower fall, like a real needle
     vuNeedle[k].setAttribute("transform", `rotate(${(-48 + b.pos * 96).toFixed(2)} 150 172)`);
+    $(k === "l" ? "pkL" : "pkR").classList.toggle("on", b.pos > .88);   // PEAK lamp lights in the red zone
   });
   vuRaf = requestAnimationFrame(vuFrame);
 }
 
 function updateMicButton(){
-  $("micBtn").textContent = micOn ? "Microphone on" : "Use microphone";
+  $("micTxt").textContent = micOn ? "MIC" : "SIM";
   $("micBtn").setAttribute("aria-pressed", String(micOn));
   $("vuHint").textContent = micOn
-    ? "Listening to the room. Nothing is recorded or sent anywhere. The two meters show low and high pitches."
-    : "Simulated needles. Turn on the microphone so they follow the sound in the room.";
+    ? "Mic on: the needles follow the sound in the room. Nothing is recorded or sent anywhere. Left shows low pitches, right shows high."
+    : "Simulated needles. Switch to MIC so they follow the sound in the room.";
 }
 
 async function vuStart(){
@@ -1776,29 +1822,27 @@ async function vuStart(){
 
 function vuStop(){ vuOn = false; if(vuRaf) cancelAnimationFrame(vuRaf); vuRaf = 0; }
 
-function setNpStyle(s){
-  npStyle = s; store.set("npStyle", s);
-  $("viewCas").hidden = s !== "cassette"; $("viewVu").hidden = s !== "vu";
-  $("tabCas").setAttribute("aria-selected", String(s === "cassette"));
-  $("tabVu").setAttribute("aria-selected", String(s === "vu"));
-  if(s === "vu") vuStart(); else { vuStop(); micStop(); }
-}
-
 function openNp(){
   $("npDlg").showModal();
-  setNpStyle(npStyle); npRender();
+  npRender(); vuStart();
   clearInterval(npTimer); npTimer = setInterval(npTick, 250);
 }
 
 /* ================= wiring for now playing styles ================= */
+/* fine brushed-metal grain for the faceplate */
+(function metalGrain(){
+  const c = document.createElement("canvas"); c.width = c.height = 96;
+  const cx = c.getContext("2d"), im = cx.createImageData(96, 96);
+  for(let i = 0; i < im.data.length; i += 4){ const v = Math.random() < .5 ? 255 : 0; im.data[i] = im.data[i+1] = im.data[i+2] = v; im.data[i+3] = Math.random() * 18; }
+  cx.putImageData(im, 0, 0);
+  document.documentElement.style.setProperty("--grain", `url(${c.toDataURL("image/png")})`);
+})();
 vuNeedle.l = buildVu($("vuL"), "LOW");
 vuNeedle.r = buildVu($("vuR"), "HIGH");
 $("npOpen").onclick = openNp;
 $("npClose").onclick = () => $("npDlg").close();
 $("npDlg").addEventListener("close", () => { clearInterval(npTimer); vuStop(); micStop(); });
 if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if($("npDlg").open){ npTapeKey = null; npRender(); } });
-$("tabCas").onclick = () => setNpStyle("cassette");
-$("tabVu").onclick = () => setNpStyle("vu");
 $("micBtn").onclick = async () => {
   micOn = !micOn; store.set("vuMic", micOn);
   if(micOn){
