@@ -71,7 +71,13 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   color:#d8dce2;display:grid;place-items:center;
   box-shadow:0 2px 0 #0a0a0b,inset 0 1px 0 rgba(255,255,255,.18);
 }
-.faceplate{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;justify-content:space-evenly;gap:1rem;padding:4rem 2.2rem 2.2rem 2.2rem}
+.faceplate{
+  flex:1;min-height:0;overflow:auto;
+  display:flex;flex-direction:column;
+  justify-content:flex-start;
+  gap:.7rem;
+  padding:3rem 2.2rem 0.5rem 2.2rem;
+}
 
 /* ---------- VU meters ---------- */
 .meters{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
