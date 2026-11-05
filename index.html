@@ -71,13 +71,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   color:#d8dce2;display:grid;place-items:center;
   box-shadow:0 2px 0 #0a0a0b,inset 0 1px 0 rgba(255,255,255,.18);
 }
-.faceplate{
-  flex:1;min-height:0;overflow:auto;
-  display:flex;flex-direction:column;
-  justify-content:flex-start;
-  gap:.7rem;
-  padding:3rem 2.2rem 0.5rem 2.2rem;
-}
+.faceplate{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;justify-content:space-evenly;gap:1rem;padding:3.6rem 2.2rem calc(env(safe-area-inset-bottom, 0px) + 4.8rem)}
 
 /* ---------- VU meters ---------- */
 .meters{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
@@ -92,7 +86,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 
 /* ---------- cassette bay & tape ---------- */
 .bay{
-  position:relative;padding:.9rem;border-radius:8px;
+  position:relative;padding:.6rem;border-radius:8px;
   background:linear-gradient(#383b42,#22252a 50%,#2c2f36);
   box-shadow:0 0 0 1px #141619,inset 0 1px 0 rgba(255,255,255,.14),0 8px 18px rgba(0,0,0,.55);
 }
@@ -100,7 +94,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   position:relative;border-radius:4px;
   background:linear-gradient(#0a0a0b,#141518 60%,#0a0b0d);
   box-shadow:inset 0 6px 14px rgba(0,0,0,.95),inset 0 0 0 1px #000;
-  padding:2.2rem 1rem 1.1rem;
+  padding:2rem .5rem 1rem;
 }
 .bay-in::before{
   content:"";position:absolute;left:0;right:0;top:0;height:1.5rem;
@@ -163,26 +157,86 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 .key:disabled{opacity:.4}
 
 @media (orientation:landscape){
-  .faceplate{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);grid-template-areas:"meters bay" "meters info" "meters keys";align-content:center;align-items:center;gap:.8rem 1.6rem;padding-top:.5rem;padding-bottom:1.2rem}
+  .faceplate{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.5fr);grid-template-areas:"meters bay" "meters info" "meters keys";align-content:center;align-items:center;gap:.8rem 1.6rem;padding-top:1rem;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 4.2rem)}
   .meters{grid-area:meters;grid-template-columns:1fr}
   .bay{grid-area:bay}
   .info{grid-area:info;gap:.35rem}
   .keys{grid-area:keys}
-  .bay-in{padding:2rem .8rem .7rem}
+  .bay-in{padding:2rem .5rem .7rem}
   .bay-in .cas{width:68%}
   .key{width:3.6rem;height:3.5rem}
 }
 
-/* translucent glass screen overlay */
-.bay-in::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  background:linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(0,0,0,0.3) 100%), rgba(0,0,0,0.2);
-  pointer-events:none;
-  border-radius:4px;
-  box-shadow:inset 0 0 30px rgba(0,0,0,0.6);
-  z-index:10;
+/* ---------- deck: glass door over the cassette bay ---------- */
+.glass{position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:4;overflow:hidden;
+  background:
+    linear-gradient(112deg,rgba(255,255,255,.17) 0%,rgba(255,255,255,.06) 20%,rgba(255,255,255,0) 36%,rgba(255,255,255,0) 60%,rgba(255,255,255,.07) 72%,rgba(255,255,255,0) 84%),
+    rgba(8,12,18,.24);
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),inset 0 1px 0 rgba(255,255,255,.3),inset 0 -14px 26px rgba(0,0,0,.28),inset 0 0 30px rgba(120,150,190,.06)}
+.glass::after{content:"";position:absolute;left:10%;width:22%;top:-10%;bottom:-10%;transform:skewX(-18deg);background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.05),rgba(255,255,255,0))}
+
+/* ---------- variant switch ---------- */
+.np-var{position:absolute;top:.8rem;left:.8rem;z-index:5;height:2.6rem;padding:0 1rem;border-radius:999px;background:linear-gradient(#34373d,#181a1d);color:#d8dce2;font:700 .72rem 'Instrument Sans',system-ui,sans-serif;letter-spacing:.14em;box-shadow:0 2px 0 #0a0a0b,inset 0 1px 0 rgba(255,255,255,.18)}
+
+/* ---------- variant 2: Spotify-style player ---------- */
+.np.v2{background:linear-gradient(180deg,var(--t1,#4a4d57) 0%,var(--t2,#1c1d22) 58%,#101012 100%)}
+.np.v2 .np-gear,.np.v2 .np-var{display:none}
+.player{flex:1;min-height:0;overflow:auto;display:flex;flex-direction:column;align-items:center;gap:1rem;padding:.9rem 2.2rem calc(env(safe-area-inset-bottom, 0px) + 4.8rem);color:#fff}
+.pl-top{width:100%;display:grid;grid-template-columns:3rem 1fr 3rem;align-items:center}
+.pl-icon{width:3rem;height:3rem;display:grid;place-items:center;color:#fff;border-radius:50%}
+.pl-icon svg{width:1.7rem;height:1.7rem;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pl-where{text-align:center;min-width:0}
+.pl-where span{display:block;font-size:.8rem;opacity:.85}
+.pl-where b{display:block;font-size:1.05rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pl-main{flex:1;min-height:0;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1.4rem}
+.pl-art{width:min(100%, 50dvh);aspect-ratio:1;border-radius:.75rem;background:rgba(255,255,255,.08) center/cover no-repeat;box-shadow:0 14px 40px rgba(0,0,0,.45);flex:none}
+.pl-right{width:min(100%, 50dvh);display:flex;flex-direction:column;gap:.35rem}
+.pl-meta{margin-bottom:.8rem}
+.pl-title{font-size:1.9rem;font-weight:800;line-height:1.15;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pl-artist{font-size:1.2rem;opacity:.7;margin-top:.2rem}
+.pl-seek{height:2.2rem;display:flex;align-items:center;touch-action:none;cursor:pointer}
+.pl-bar{position:relative;width:100%;height:.28rem;border-radius:.2rem;background:rgba(255,255,255,.28)}
+.pl-bar i{position:absolute;left:0;top:0;bottom:0;border-radius:.2rem;background:#fff;width:0}
+.pl-bar b{position:absolute;top:50%;left:0;width:.95rem;height:.95rem;border-radius:50%;background:#fff;transform:translate(-50%,-50%);box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.pl-times{display:flex;justify-content:space-between;font-size:.85rem;opacity:.75}
+.pl-ctrl{display:flex;align-items:center;justify-content:space-between;margin-top:.9rem}
+.pl-btn{position:relative;width:3.4rem;height:3.4rem;display:grid;place-items:center;color:#fff;border-radius:50%}
+.pl-btn svg{width:2.1rem;height:2.1rem;fill:currentColor}
+.pl-btn.line svg{width:1.7rem;height:1.7rem;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.pl-btn.on{color:#1ed760}
+.pl-btn[data-mode="track"]::after{content:"1";position:absolute;right:.55rem;top:.7rem;font:800 .6rem 'Instrument Sans',system-ui,sans-serif;color:#1ed760}
+.pl-btn:disabled{opacity:.4}
+.pl-play{width:5.2rem;height:5.2rem;background:#fff;color:#000}
+.pl-play svg{width:2.4rem;height:2.4rem}
+@media (orientation:landscape){
+  .player{padding-left:2.4rem;padding-right:2.4rem;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 4.2rem)}
+  .pl-main{flex-direction:row;gap:3rem}
+  .pl-art{width:min(46dvh, 46%)}
+  .pl-right{width:auto;flex:1;max-width:34rem}
+}
+
+/* ---------- raster artwork: background, bay frame, VU meters and keys ---------- */
+.np{background:#1c1e22 url(deck-bg.webp) center/cover no-repeat}
+.vu-box{position:relative;width:100%;aspect-ratio:300/190;border-radius:10px;box-shadow:0 6px 14px rgba(0,0,0,.6)}
+.vu-box img,.vu-box svg{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.bay{padding:0;border-style:solid;border-color:transparent;border-width:42px 20px 42px 20px;border-image:url(deck-bay.webp) 84 40 84 40 fill / 42px 20px 42px 20px stretch;background:none;box-shadow:0 10px 24px rgba(0,0,0,.5);border-radius:10px}
+.bay-in{background:none;box-shadow:none;border-radius:0;padding:.5rem .3rem .6rem}
+.bay-in::before,.bay-foot{display:none}
+.bay-in .cas{width:87%}
+.keycol{gap:0}
+.key,.key:active,.key.latched{width:4.6rem;height:auto;aspect-ratio:192/276;padding:0;border:0;border-radius:0;box-shadow:none;transform:none;transition:none;color:inherit;
+  background-color:transparent;background-image:url(deck-keys.webp);background-size:500% 300%;background-repeat:no-repeat;background-position-y:0%;-webkit-tap-highlight-color:transparent}
+.key:active{background-position-y:50%}
+.key.latched{background-position-y:100%}
+#npPrev{background-position-x:0%}#npNext{background-position-x:25%}#npPlay{background-position-x:50%}#npPause{background-position-x:75%}#npEject{background-position-x:100%}
+.key svg{display:none}
+.key:disabled{opacity:.5}
+.cas-label{paint-order:stroke;stroke:rgba(0,0,0,.55);stroke-width:2.6px;stroke-linejoin:round}
+.cas .artlay{mix-blend-mode:screen;pointer-events:none}
+@media (orientation:landscape){
+  .bay-in{padding:.4rem .3rem .5rem}
+  .bay-in .cas{width:69%}
+  .key,.key:active,.key.latched{width:4rem}
 }
 </style>
 </head>
@@ -204,10 +258,12 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
     </svg>
   </button>
 
-  <div class="faceplate">
+  <button id="toPlayer" class="np-var" aria-label="Switch to the Spotify-style player">PLAYER</button>
+
+  <div id="deck" class="faceplate">
     <div class="meters">
-      <div class="vu-mod"><div class="peak"><i id="pkL" class="led"></i><span>PEAK</span></div><svg id="vuL" class="vu" role="img" aria-label="Low pitch level meter"></svg></div>
-      <div class="vu-mod"><div class="peak"><i id="pkR" class="led"></i><span>PEAK</span></div><svg id="vuR" class="vu" role="img" aria-label="High pitch level meter"></svg></div>
+      <div class="vu-mod"><div class="peak"><i id="pkL" class="led"></i><span>PEAK</span></div><div class="vu-box" role="img" aria-label="Low pitch level meter"><img src="vu-face-low.webp" alt=""><svg id="vuL" aria-hidden="true"></svg><img src="vu-front.webp" alt=""></div></div>
+      <div class="vu-mod"><div class="peak"><i id="pkR" class="led"></i><span>PEAK</span></div><div class="vu-box" role="img" aria-label="High pitch level meter"><img src="vu-face-high.webp" alt=""><svg id="vuR" aria-hidden="true"></svg><img src="vu-front.webp" alt=""></div></div>
     </div>
 
     <div class="bay">
@@ -221,11 +277,19 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
           </svg>
 
           <!-- label print: waveform (passes behind the window) and text -->
+          <!-- album art laid over the label -->
+          <svg class="artlay" viewBox="0 0 379 242" aria-hidden="true">
+            <defs><linearGradient id="artScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".72"/><stop offset=".3" stop-color="#000" stop-opacity=".24"/><stop offset=".68" stop-color="#000" stop-opacity=".24"/><stop offset="1" stop-color="#000" stop-opacity=".78"/></linearGradient></defs>
+            <g clip-path="url(#casOut)">
+              <image id="casArt" x="25" y="67" width="334" height="154" preserveAspectRatio="xMidYMid slice" opacity=".78"/>
+              <rect x="25" y="67" width="334" height="154" fill="url(#artScrim)"/>
+            </g>
+          </svg>
+
           <svg viewBox="0 0 379 242" aria-hidden="true">
             <defs>
               <clipPath id="casOut"><path clip-rule="evenodd" d="M27 69 L38 67 H354 L359 75 V206 L345 221 H38 L25 207 V75 Z M66 104 H317 A7 7 0 0 1 324 111 V157 A7 7 0 0 1 317 164 H66 A7 7 0 0 1 59 157 V111 A7 7 0 0 1 66 104 Z"/></clipPath>
             </defs>
-            <g clip-path="url(#casOut)"><path id="casWave" fill="none" stroke="#f6f5f1" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></g>
             <text id="casArtist" x="34" y="89.5" class="cas-label" font-size="20.5"></text>
             <text id="casAlbum" x="348" y="89.5" text-anchor="end" class="cas-label" font-size="20.5"></text>
             <text id="casTitle" x="192.5" y="206.5" text-anchor="middle" class="cas-label" font-size="21.5"></text>
@@ -258,9 +322,9 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
               <g stroke="#fff" stroke-opacity=".15" stroke-width=".4" fill="none"><path d="M80 150 L125 134"/><path d="M215 118 L262 148"/><path d="M180 154 L194 146"/></g>
               <rect x="63" y="108" width="255" height="51" rx="5" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="3.5"/>
             </g>
-            <g fill="none" stroke="#f6f5f1" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path id="casWaveM"/></g>
           </svg>
         </div>
+        <div class="glass" aria-hidden="true"></div>
       </div>
       <div class="bay-foot"><i></i></div>
     </div>
@@ -271,17 +335,40 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
         <p class="np-time" id="npTime">0:00 / 0:00</p>
       </div>
       <p class="np-track" id="npTrack"></p>
-      <p class="vu-hint" id="vuHint"></p>
     </div>
 
     <div class="keys">
-      <div class="keycol"><span class="kl">REW</span><div class="slot"><button id="npPrev" class="key" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg></button></div></div>
-      <div class="keycol"><span class="kl">FF</span><div class="slot"><button id="npNext" class="key" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button></div></div>
-      <div class="keycol"><span class="kl">PLAY</span><div class="slot"><button id="npPlay" class="key" aria-label="Play"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div></div>
-      <div class="keycol"><span class="kl">PAUSE</span><div class="slot"><button id="npPause" class="key" aria-label="Pause"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg></button></div></div>
-      <div class="keycol"><span class="kl">EJECT</span><div class="slot"><button id="npEject" class="key" aria-label="Spotify &amp; device settings"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 17h14v2H5zM12 5l7 9H5z"/></svg></button></div></div>
+      <div class="keycol"><button id="npPrev" class="key" aria-label="Previous track"></button></div>
+      <div class="keycol"><button id="npNext" class="key" aria-label="Next track"></button></div>
+      <div class="keycol"><button id="npPlay" class="key" aria-label="Play"></button></div>
+      <div class="keycol"><button id="npPause" class="key" aria-label="Pause"></button></div>
+      <div class="keycol"><button id="npEject" class="key" aria-label="Spotify &amp; device settings"></button></div>
     </div>
   </div>
+
+  <!-- variant 2: Spotify-style player -->
+  <section id="player" class="player" hidden aria-label="Now playing, Spotify style">
+    <div class="pl-top">
+      <button id="plBack" class="pl-icon" aria-label="Back to the cassette deck"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg></button>
+      <div class="pl-where"><span>Playing on</span><b id="plDevice"></b></div>
+      <button id="plMenu" class="pl-icon" aria-label="Spotify and device settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.9" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.9" fill="currentColor" stroke="none"/><circle cx="12" cy="19" r="1.9" fill="currentColor" stroke="none"/></svg></button>
+    </div>
+    <div class="pl-main">
+      <div id="plArt" class="pl-art" role="img" aria-label="Album art"></div>
+      <div class="pl-right">
+        <div class="pl-meta"><div class="pl-title" id="plTitle"></div><div class="pl-artist" id="plArtist"></div></div>
+        <div class="pl-seek" id="plSeek" role="slider" aria-label="Seek"><div class="pl-bar"><i id="plFill"></i><b id="plThumb"></b></div></div>
+        <div class="pl-times"><span id="plPos">0:00</span><span id="plDur">0:00</span></div>
+        <div class="pl-ctrl">
+          <button id="plShuffle" class="pl-btn line" aria-label="Shuffle" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="16 3 21 3 21 8"/><line x1="4" y1="20" x2="21" y2="3"/><polyline points="21 16 21 21 16 21"/><line x1="15" y1="15" x2="21" y2="21"/><line x1="4" y1="4" x2="9" y2="9"/></svg></button>
+          <button id="plPrev" class="pl-btn" aria-label="Previous track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6h2v12H6zM9.5 12l8.5 6V6z"/></svg></button>
+          <button id="plPlay" class="pl-btn pl-play" aria-label="Play"></button>
+          <button id="plNext" class="pl-btn" aria-label="Next track"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 6h2v12h-2zM6 18l8.5-6L6 6z"/></svg></button>
+          <button id="plRepeat" class="pl-btn line" aria-label="Repeat off"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </section>
 </main>
 
 <!-- Spotify & Playback Device Dialog -->
@@ -335,63 +422,7 @@ const spCid = () => SPOTIFY_CLIENT_ID || store.get("spClientId", "");
 /* ================= helpers ================= */
 const $ = id => document.getElementById(id);
 const pad = n => String(n).padStart(2,"0");
-
-/* ================= mechanical haptic click sound (Web Audio API) ================= */
-let audioCtx = null;
-window.playClickSound = playClickSound;
-function playClickSound(){
-  try{
-    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    if(audioCtx.state === "suspended") audioCtx.resume();
-    
-    const t = audioCtx.currentTime;
-    
-    // Mechanical solenoid relay click: a dual-component thud + sharp metallic snap
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    
-    osc.type = 'triangle';
-    osc.frequency.setValueAtTime(120, t);
-    osc.frequency.exponentialRampToValueAtTime(30, t + 0.03);
-    
-    gain.gain.setValueAtTime(0.4, t);
-    gain.gain.exponentialRampToValueAtTime(0.001, t + 0.035);
-    
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-    
-    osc.start(t);
-    osc.stop(t + 0.04);
-    
-    // Sharp high-frequency click/snap (metallic latch)
-    const bufferSize = audioCtx.sampleRate * 0.015;
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1;
-    }
-    
-    const noise = audioCtx.createBufferSource();
-    noise.buffer = buffer;
-    
-    const filter = audioCtx.createBiquadFilter();
-    filter.type = 'highpass';
-    filter.frequency.setValueAtTime(2500, t);
-    
-    const noiseGain = audioCtx.createGain();
-    noiseGain.gain.setValueAtTime(0.25, t);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.012);
-    
-    noise.connect(filter);
-    filter.connect(noiseGain);
-    noiseGain.connect(audioCtx.destination);
-    
-    noise.start(t);
-    noise.stop(t + 0.015);
-  }catch(e){}
-}
-
-const vib = ms => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} playClickSound(); };
+const vib = ms => { try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} };
 const fmtMs = ms => { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 60) + ":" + pad(s % 60); };
 
 function h(tag, attrs = {}, ...kids){
@@ -512,7 +543,8 @@ async function spPoll(){
       artist: (it.artists || []).map(a => a.name).join(", ") || (it.show && it.show.publisher) || "",
       art: (imgs[1] || imgs[0] || {}).url || "", artBig: (imgs[0] || {}).url || "",
       album: (it.album && it.album.name) || (it.show && it.show.name) || "", dur: it.duration_ms || 0,
-      pos: r.data.progress_ms || 0, at: Date.now()
+      pos: r.data.progress_ms || 0, at: Date.now(),
+      device: (r.data.device && r.data.device.name) || "", shuffle: !!r.data.shuffle_state, repeat: r.data.repeat_state || "off"
     };
   }else if(r.status === 200 || r.status === 204){
     spNow = null;
@@ -683,10 +715,6 @@ function casDesign(artist, album, title){
   const wb = fitSvgText($("casAlbum"), b, 130, 20.5, 11);
   fitSvgText($("casArtist"), a, 314 - (b ? wb + 22 : 0), 20.5, 11);
   fitSvgText($("casTitle"), t, 300, 21.5, 12);
-  const rnd = mulberry32(hashStr((album || "") + "|" + (title || "tape")));
-  const j = () => (rnd() - .5) * .05, v = () => .8 + rnd() * .4;
-  $("casWave").setAttribute("d", wavePath(26, 358, 134, rnd, [[.06 + j(), 20 * v(), .09], [.30 + j(), 46 * v(), .12], [.70 + j(), 48 * v(), .12], [.94 + j(), 20 * v(), .09]], 2, 7.5));
-  $("casWaveM").setAttribute("d", wavePath(166, 216, 134, rnd, [[.5, 11 * v(), .35]], 2, 8));
 }
 
 function setPack(side, r){
@@ -703,7 +731,8 @@ function npRender(){
   const art = has ? (spNow.artBig || spNow.art || "") : "";
   if(art !== npArtShown){
     npArtShown = art;
-    artTint(art).then(c => { if(art === npArtShown) $("casShell").setAttribute("fill", labelColor(c)); });
+    const ca = $("casArt"); if(art) ca.setAttribute("href", art); else ca.removeAttribute("href");
+    artTint(art).then(c => { if(art === npArtShown){ $("casShell").setAttribute("fill", labelColor(c)); setPlayerTint(c); } });
   }
   const tapeKey = has ? (spNow.album + "|" + spNow.title) : (connected ? "empty" : "off");
   if(tapeKey !== npTapeKey){
@@ -715,6 +744,7 @@ function npRender(){
   $("npPlay").classList.toggle("latched", playing);
   $("npPause").classList.toggle("latched", has && !playing);
   $("npDlg").querySelectorAll(".key").forEach(k => { k.disabled = !connected && k.id !== "npEject"; });
+  plRender();
   npTick();
 }
 
@@ -728,186 +758,20 @@ function npTick(){
   setPack("L", 38 - 16 * p);
   setPack("R", 22 + 16 * p);
   $("npTime").textContent = fmtMs(pos) + " / " + fmtMs(dur);
+  if(variant === "player") plProgress();
 }
 
 /* ----- VU meters ----- */
 function buildVu(svg, label){
-  const id = "vf" + label, cx = 150, cy = 185, R = 125;
-  
-  // Custom angle mapping for classic VU scale: -20 to +3
-  const scaleMap = {
-    "-20": -46, "-15": -38, "-10": -28, "-7": -21, "-5": -16, 
-    "-3": -10, "-2": -6, "-1": -2, "0": 4, "1": 18, "2": 32, "3": 46
-  };
-  const ang = v => {
-    // interpolate or find closest
-    const keys = Object.keys(scaleMap).map(Number).sort((a,b)=>a-b);
-    if(scaleMap[v] !== undefined) return scaleMap[v] * Math.PI / 180;
-    // linear approximation between surrounding keys
-    for(let i=0; i<keys.length-1; i++){
-      if(v >= keys[i] && v <= keys[i+1]){
-        const f = (v - keys[i]) / (keys[i+1] - keys[i]);
-        return (scaleMap[keys[i]] + f * (scaleMap[keys[i+1]] - scaleMap[keys[i]])) * Math.PI / 180;
-      }
-    }
-    return (-46 + ((v + 20) / 23) * 92) * Math.PI / 180;
-  };
-
-  const pt = (v, r) => [cx + r * Math.sin(ang(v)), cy - r * Math.cos(ang(v))];
-  
-  // smooth arc generator
-  const arcPath = (v1, v2, r, steps=30) => {
-    let d = "";
-    for(let i=0; i<=steps; i++){
-      const v = v1 + (v2 - v1) * (i/steps);
-      const [x, y] = pt(v, r);
-      d += (i === 0 ? "M" : "L") + x.toFixed(1) + " " + y.toFixed(1);
-    }
-    return d;
-  };
-
+  /* the meter face, glass and cover are images; only the needle is drawn here */
   svg.setAttribute("viewBox", "0 0 300 190");
   svg.innerHTML = "";
-
-  const defs = svgEl("defs", {});
-  
-  // Warm vintage amber incandescent backlight gradient
-  const grad = svgEl("linearGradient", {id, x1:"0", y1:"0", x2:"0", y2:"1"});
-  grad.append(
-    svgEl("stop", {offset:"0%", "stop-color":"#ffe699"}),
-    svgEl("stop", {offset:"35%", "stop-color":"#ffb333"}),
-    svgEl("stop", {offset:"85%", "stop-color":"#e66b00"}),
-    svgEl("stop", {offset:"100%", "stop-color":"#b34700"})
-  );
-  
-  // Radial glow for bulb warmth at top center
-  const radialGrad = svgEl("radialGradient", {id: id+"glow", cx:"50%", cy:"15%", r:"70%"});
-  radialGrad.append(
-    svgEl("stop", {offset:"0%", "stop-color":"#fff3cc", "stop-opacity":"0.9"}),
-    svgEl("stop", {offset:"60%", "stop-color":"#ff991a", "stop-opacity":"0.3"}),
-    svgEl("stop", {offset:"100%", "stop-color":"#cc5200", "stop-opacity":"0.0"})
-  );
-
-  defs.append(grad, radialGrad);
-  svg.append(defs);
-
-  // Meter outer housing & bezel
-  svg.append(svgEl("rect", {x:0, y:0, width:300, height:190, rx:9, fill:"#08080a"}));
-  svg.append(svgEl("rect", {x:1.5, y:1.5, width:297, height:187, rx:8, fill:"none", stroke:"#2d2d33", "stroke-width":2}));
-  svg.append(svgEl("rect", {x:8, y:8, width:284, height:174, rx:4, fill:"#121215", stroke:"#000", "stroke-width":2}));
-  
-  // Meter face background (amber backlight)
-  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:`url(#${id})`}));
-  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:`url(#${id}glow)`}));
-
-  // Black scale arcs (-20 to 0 normal, 0 to +3 red zone)
-  svg.append(svgEl("path", {d:arcPath(-20, 0, R), fill:"none", stroke:"#111113", "stroke-width":2.5}));
-  svg.append(svgEl("path", {d:arcPath(0, 3, R), fill:"none", stroke:"#c92a1d", "stroke-width":4.5}));
-
-  // Minor tick marks and dots (like reference photo)
-  const minorTicks = [-20,-15,-10,-7,-5,-3,-2,-1,0,1,2,3];
-  minorTicks.forEach(v => {
-    const isMajor = [-20,-10,-7,-5,-3,-2,-1,0,1,2,3].includes(v);
-    const tickLen = isMajor ? 10 : 6;
-    const a = pt(v, R), b = pt(v, R - tickLen);
-    const isRed = v > 0;
-    svg.append(svgEl("line", {
-      x1: a[0].toFixed(1), y1: a[1].toFixed(1),
-      x2: b[0].toFixed(1), y2: b[1].toFixed(1),
-      stroke: isRed ? "#c92a1d" : "#111113",
-      "stroke-width": isMajor ? 2 : 1.2
-    }));
-  });
-
-  // Intermediate dot markers for -15, -8, -6, -4 (as seen in classic meters)
-  [-17.5, -12.5, -8.5, -6, -4, -2.5, -1.5].forEach(v => {
-    const p = pt(v, R - 4);
-    svg.append(svgEl("circle", {cx: p[0].toFixed(1), cy: p[1].toFixed(1), r: 1.2, fill: "#111113"}));
-  });
-
-  // Numbers (-20, -10, -7, -5, -3, -2, -1, 0, 1, 2, 3)
-  const numDefs = [
-    {v:-20, text:"20", xOff:0}, {v:-10, text:"10", xOff:0}, {v:-7, text:"7", xOff:0},
-    {v:-5, text:"5", xOff:0}, {v:-3, text:"3", xOff:0}, {v:-2, text:"2", xOff:0},
-    {v:-1, text:"1", xOff:0}, {v:0, text:"0", xOff:0}, {v:1, text:"1", xOff:0},
-    {v:2, text:"2", xOff:0}, {v:3, text:"3", xOff:0}
-  ];
-
-  numDefs.forEach(item => {
-    const t = pt(item.v, R - 24);
-    const isRed = item.v > 0;
-    const tx = svgEl("text", {
-      x: t[0].toFixed(1),
-      y: (t[1] + 5).toFixed(1),
-      "text-anchor": "middle",
-      class: "vu-num",
-      style: `font-family: 'Montserrat', 'Helvetica Neue', sans-serif; font-weight: 700; font-size: ${item.v === -20 || item.v === -10 ? '15px' : '14px'}; fill: ${isRed ? '#c92a1d' : '#111113'};`
-    });
-    tx.textContent = item.v < 0 ? String(Math.abs(item.v)) : String(item.v);
-    svg.append(tx);
-  });
-
-  // Plus and Minus signs at top corners of scale
-  const minusPos = pt(-20, R - 38);
-  const mTxt = svgEl("text", {x: minusPos[0].toFixed(1), y: (minusPos[1]+4).toFixed(1), "text-anchor":"middle", style:"font-family:sans-serif; font-weight:800; font-size:16px; fill:#111113;"});
-  mTxt.textContent = "-";
-  svg.append(mTxt);
-
-  const plusPos = pt(3, R - 38);
-  const pTxt = svgEl("text", {x: plusPos[0].toFixed(1), y: (plusPos[1]+5).toFixed(1), "text-anchor":"middle", style:"font-family:sans-serif; font-weight:800; font-size:16px; fill:#c92a1d;"});
-  pTxt.textContent = "+";
-  svg.append(pTxt);
-
-  // VU watermark logo at bottom right
-  const vuLogo = svgEl("text", {x: 235, y: 135, "text-anchor":"middle", style:"font-family:'Montserrat', sans-serif; font-weight:800; font-style:italic; font-size:24px; fill:#111113; letter-spacing:1px;"});
-  vuLogo.textContent = "VU";
-  svg.append(vuLogo);
-
-  // Needle group rotating around (cx, cy)
-  const needleGroup = svgEl("g", {transform: "rotate(-46 150 185)"});
-  
-  // Tapered classic black needle with a fine red tip
-  // Needle blade
-  const needleBlade = svgEl("path", {
-    d: "M148.5 185 L149.3 " + (cy - R + 8) + " L150.7 " + (cy - R + 8) + " L151.5 185 Z",
-    fill: "#1a1a1e"
-  });
-  // Red indicator tip
-  const redTip = svgEl("path", {
-    d: "M149.3 " + (cy - R + 25) + " L149.5 " + (cy - R + 8) + " L150.5 " + (cy - R + 8) + " L150.7 " + (cy - R + 25) + " Z",
-    fill: "#e62e00"
-  });
-  needleGroup.append(needleBlade, redTip);
-  svg.append(needleGroup);
-
-  // Center pivot jewel cap (shiny black & metallic cap with highlight)
-  const pivotBase = svgEl("circle", {cx: cx, cy: cy, r: 12, fill: "#1a1a1e", stroke: "#000", "stroke-width": 1.5});
-  const pivotCap = svgEl("circle", {cx: cx, cy: cy, r: 8, fill: "radial-gradient(circle at 35% 35%, #444, #111)"});
-  const pivotPin = svgEl("circle", {cx: cx - 2, cy: cy - 2, r: 3, fill: "#666", opacity: "0.6"});
-  svg.append(pivotBase, pivotCap, pivotPin);
-
-  // Realistic glass reflection / glossy diagonal sheen overlay across the meter window
-  const glassGlare = svgEl("path", {
-    d: "M12 12 L180 12 L12 120 Z",
-    fill: "url(#glassShine)",
-    opacity: "0.35"
-  });
-  
-  const glassGrad = svgEl("linearGradient", {id: "glassShine", x1:"0", y1:"0", x2:"1", y2:"1"});
-  glassGrad.append(
-    svgEl("stop", {offset:"0%", "stop-color":"#ffffff", "stop-opacity":"0.7"}),
-    svgEl("stop", {offset:"50%", "stop-color":"#ffffff", "stop-opacity":"0.1"}),
-    svgEl("stop", {offset:"100%", "stop-color":"#ffffff", "stop-opacity":"0.0"})
-  );
-  svg.querySelector("defs").append(glassGrad);
-  svg.append(glassGlare);
-
-  // Outer bezel border frame shadow & 3D bevel overlay
-  svg.append(svgEl("rect", {x:12, y:12, width:276, height:166, rx:3, fill:"none", stroke:"#000", "stroke-opacity":".6", "stroke-width":3}));
-
-  return needleGroup;
+  const needle = svgEl("g", {transform:"rotate(-48 150 172)"});
+  needle.append(svgEl("line", {x1:152, y1:175, x2:152, y2:62, stroke:"#000", "stroke-opacity":".22", "stroke-width":2.8, "stroke-linecap":"round"}));
+  needle.append(svgEl("line", {x1:150, y1:172, x2:150, y2:60, stroke:"#141414", "stroke-width":2.2, "stroke-linecap":"round"}));
+  svg.append(needle);
+  return needle;
 }
-
 
 const vuNeedle = {}, vu = {l:{pos:0, ref:-40}, r:{pos:0, ref:-40}};
 let vuOn = false, vuRaf = 0;
@@ -963,7 +827,7 @@ function vuFrame(t){
   [["l", tl], ["r", tr]].forEach(([k, target]) => {
     const b = vu[k]; target = Math.min(1, Math.max(0, target));
     b.pos += (target - b.pos) * (target > b.pos ? .4 : .07);
-    vuNeedle[k].setAttribute("transform", `rotate(${(-46 + b.pos * 92).toFixed(2)} 150 185)`);
+    vuNeedle[k].setAttribute("transform", `rotate(${(-48 + b.pos * 96).toFixed(2)} 150 172)`);
     $(k === "l" ? "pkL" : "pkR").classList.toggle("on", b.pos > .88);
   });
   vuRaf = requestAnimationFrame(vuFrame);
@@ -972,9 +836,6 @@ function vuFrame(t){
 function updateMicButton(){
   $("micTxt").textContent = micOn ? "MIC" : "SIM";
   $("micBtn").setAttribute("aria-pressed", String(micOn));
-  $("vuHint").textContent = micOn
-    ? "Mic on: the needles follow the sound in the room. Nothing is recorded or sent anywhere. Left shows low pitches, right shows high."
-    : "Simulated needles. Switch to MIC so they follow the sound in the room.";
 }
 
 async function vuStart(){
@@ -987,13 +848,84 @@ async function vuStart(){
   if(vuOn && !vuRaf) vuRaf = requestAnimationFrame(vuFrame);
 }
 
+/* ================= variant 2: Spotify-style player ================= */
+let variant = "deck";
+const ICON_PLAY = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>';
+const ICON_PAUSE = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h4v14H6zM14 5h4v14h-4z"/></svg>';
 
-document.addEventListener('pointerdown', e => {
-  const btn = e.target.closest('button');
-  if(btn && !btn.disabled){
-    playClickSound();
+function shade(c, k){
+  const m = c && c.match(/\d+/g);
+  if(!m) return null;
+  return `rgb(${Math.min(255, Math.round(m[0] * k))},${Math.min(255, Math.round(m[1] * k))},${Math.min(255, Math.round(m[2] * k))})`;
+}
+function setPlayerTint(c){
+  const st = $("npDlg").style;
+  st.setProperty("--t1", c ? shade(c, 1.05) : "#4a4d57");
+  st.setProperty("--t2", c ? shade(c, .42) : "#1c1d22");
+}
+
+let plDrag = null;   // fraction while the thumb is being dragged
+function plProgress(){
+  let frac = 0, pos = 0, dur = 0;
+  if(spNow){
+    dur = spNow.dur || 0;
+    pos = Math.min(spNow.pos + (spNow.playing ? Date.now() - spNow.at : 0), dur || Infinity);
+    frac = dur ? pos / dur : 0;
   }
-});
+  if(plDrag !== null){ frac = plDrag; pos = frac * dur; }
+  $("plFill").style.width = (frac * 100).toFixed(2) + "%";
+  $("plThumb").style.left = (frac * 100).toFixed(2) + "%";
+  $("plPos").textContent = fmtMs(pos); $("plDur").textContent = fmtMs(dur);
+}
+
+function plRender(){
+  const connected = !!sp, has = !!spNow, playing = !!(spNow && spNow.playing);
+  $("plTitle").textContent = has ? spNow.title : (connected ? "Nothing playing" : "Not connected");
+  $("plArtist").textContent = has ? spNow.artist : (connected ? "Start playing in Spotify, or pick a device in settings." : "Open the menu to connect Spotify.");
+  $("plDevice").textContent = (has && spNow.device) || (connected ? "Spotify" : "Not connected");
+  const art = has ? (spNow.artBig || spNow.art || "") : "";
+  $("plArt").style.backgroundImage = art ? `url("${art}")` : "none";
+  $("plPlay").innerHTML = playing ? ICON_PAUSE : ICON_PLAY;
+  $("plPlay").setAttribute("aria-label", playing ? "Pause" : "Play");
+  const shuf = has && !!spNow.shuffle, rep = has ? (spNow.repeat || "off") : "off";
+  $("plShuffle").classList.toggle("on", shuf); $("plShuffle").setAttribute("aria-pressed", String(shuf));
+  $("plRepeat").classList.toggle("on", rep !== "off"); $("plRepeat").dataset.mode = rep;
+  $("plRepeat").setAttribute("aria-label", rep === "track" ? "Repeat one" : rep === "context" ? "Repeat all" : "Repeat off");
+  ["plShuffle", "plPrev", "plPlay", "plNext", "plRepeat"].forEach(id => { $(id).disabled = !connected; });
+  plProgress();
+}
+
+async function spSeek(ms){
+  const r = await spApi("PUT", "/me/player/seek?position_ms=" + Math.round(ms));
+  if(r.status >= 400 || r.status === 0) spError(r);
+  setTimeout(spPoll, 500);
+}
+async function spShuffle(){
+  if(!spNow) return;
+  spNow.shuffle = !spNow.shuffle; plRender();
+  const r = await spApi("PUT", "/me/player/shuffle?state=" + spNow.shuffle);
+  if(r.status >= 400 || r.status === 0) spError(r);
+  setTimeout(spPoll, 600);
+}
+async function spRepeat(){
+  if(!spNow) return;
+  spNow.repeat = {off:"context", context:"track", track:"off"}[spNow.repeat || "off"] || "off"; plRender();
+  const r = await spApi("PUT", "/me/player/repeat?state=" + spNow.repeat);
+  if(r.status >= 400 || r.status === 0) spError(r);
+  setTimeout(spPoll, 600);
+}
+
+function vuStop(){ vuOn = false; if(vuRaf){ cancelAnimationFrame(vuRaf); vuRaf = 0; } }
+
+function setVariant(v){
+  variant = v === "player" ? "player" : "deck";
+  store.set("variant", variant);
+  $("npDlg").classList.toggle("v2", variant === "player");
+  $("deck").hidden = variant === "player";
+  $("player").hidden = variant !== "player";
+  if(variant === "player"){ vuStop(); micStop(); plRender(); }   // the meters and microphone only run on the deck
+  else vuStart();
+}
 
 /* ================= initialization & deck wiring ================= */
 (function metalGrain(){
@@ -1025,12 +957,38 @@ keyAct("npPlay", () => { if(!(spNow && spNow.playing)) spControl("toggle"); });
 keyAct("npPause", () => { if(spNow && spNow.playing) spControl("toggle"); });
 keyAct("npEject", openSettings);
 
+/* variant switch and the Spotify-style player controls */
+$("toPlayer").onclick = () => setVariant("player");
+$("plBack").onclick = () => setVariant("deck");
+$("plMenu").onclick = openSettings;
+keyAct("plPrev", () => spControl("prev"));
+keyAct("plNext", () => spControl("next"));
+keyAct("plPlay", () => spControl("toggle"));
+keyAct("plShuffle", spShuffle);
+keyAct("plRepeat", spRepeat);
+
+/* tap or drag the progress bar to seek */
+(function(){
+  const bar = $("plSeek");
+  const frac = e => { const r = bar.getBoundingClientRect(); return Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); };
+  bar.addEventListener("pointerdown", e => { if(!spNow) return; bar.setPointerCapture(e.pointerId); plDrag = frac(e); plProgress(); });
+  bar.addEventListener("pointermove", e => { if(plDrag !== null){ plDrag = frac(e); plProgress(); } });
+  bar.addEventListener("pointerup", () => {
+    if(plDrag === null) return;
+    const f = plDrag; plDrag = null;
+    if(spNow){ spNow.pos = f * spNow.dur; spNow.at = Date.now(); spSeek(spNow.pos); }
+    plProgress();
+  });
+  bar.addEventListener("pointercancel", () => { plDrag = null; plProgress(); });
+})();
+
+
 setInterval(spPoll, 5000);
 setInterval(npTick, 250);
 
 if("serviceWorker" in navigator && location.protocol.indexOf("http") === 0) navigator.serviceWorker.register("sw.js").catch(() => {});
 npRender();
-vuStart();
+setVariant(store.get("variant", "deck"));
 spHandleRedirect().then(() => { npRender(); refreshSettings(); spPoll(); });
 </script>
 </body>
