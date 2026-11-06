@@ -1,6 +1,6 @@
 /* Home board service worker: keeps the board opening when the tablet is offline. */
-const CACHE = "home-board-v2";
-const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cassette-plate.webp", "./cassette-reel.webp"];
+const CACHE = "home-board-v4";
+const SHELL = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png", "./cassette-plate.webp", "./cassette-reel.webp", "./deck-bg.webp", "./deck-bay.webp", "./vu-face-low.webp", "./vu-face-high.webp", "./deck-keys.webp"];
 
 self.addEventListener("install", e => {
   // add each file on its own so one missing file never blocks the install
