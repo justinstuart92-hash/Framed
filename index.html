@@ -238,6 +238,12 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   .bay-in .cas{width:69%}
   .key,.key:active,.key.latched{width:4rem}
 }
+
+/* ---------- replaced artwork: supplied meter, key sheet and cassette photo ---------- */
+.cas .tint{display:none}
+.cas .artlay{mix-blend-mode:normal}
+.vu-box{overflow:hidden}
+.keys{gap:0;width:fit-content;max-width:100%;align-self:center;justify-self:center;margin:0 auto;border-radius:6px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.7)}
 </style>
 </head>
 <body>
@@ -262,8 +268,8 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 
   <div id="deck" class="faceplate">
     <div class="meters">
-      <div class="vu-mod"><div class="peak"><i id="pkL" class="led"></i><span>PEAK</span></div><div class="vu-box" role="img" aria-label="Low pitch level meter"><img src="vu-face-low.webp" alt=""><svg id="vuL" aria-hidden="true"></svg><img src="vu-front.webp" alt=""></div></div>
-      <div class="vu-mod"><div class="peak"><i id="pkR" class="led"></i><span>PEAK</span></div><div class="vu-box" role="img" aria-label="High pitch level meter"><img src="vu-face-high.webp" alt=""><svg id="vuR" aria-hidden="true"></svg><img src="vu-front.webp" alt=""></div></div>
+      <div class="vu-mod"><div class="peak"><i id="pkL" class="led"></i><span>PEAK</span></div><div class="vu-box" role="img" aria-label="Low pitch level meter"><img src="vu-face-low.webp" alt=""><svg id="vuL" aria-hidden="true"></svg></div></div>
+      <div class="vu-mod"><div class="peak"><i id="pkR" class="led"></i><span>PEAK</span></div><div class="vu-box" role="img" aria-label="High pitch level meter"><img src="vu-face-high.webp" alt=""><svg id="vuR" aria-hidden="true"></svg></div></div>
     </div>
 
     <div class="bay">
@@ -271,56 +277,53 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
         <div id="cas" class="cas" role="img" aria-label="Cassette tape">
           <img class="cas-plate" src="cassette-plate.webp" alt="" draggable="false">
 
-          <!-- cover-colour tint on the label (blends into the photo) -->
-          <svg class="tint" viewBox="0 0 379 242" aria-hidden="true">
-            <path id="casShell" fill-rule="evenodd" fill="#000" opacity=".6" d="M27 69 L38 67 H354 L359 75 V206 L345 221 H38 L25 207 V75 Z M66 104 H317 A7 7 0 0 1 324 111 V157 A7 7 0 0 1 317 164 H66 A7 7 0 0 1 59 157 V111 A7 7 0 0 1 66 104 Z"/>
-          </svg>
-
-          <!-- label print: waveform (passes behind the window) and text -->
-          <!-- album art laid over the label -->
+          <!-- album art laid over the label (not over the window) -->
           <svg class="artlay" viewBox="0 0 379 242" aria-hidden="true">
-            <defs><linearGradient id="artScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".72"/><stop offset=".3" stop-color="#000" stop-opacity=".24"/><stop offset=".68" stop-color="#000" stop-opacity=".24"/><stop offset="1" stop-color="#000" stop-opacity=".78"/></linearGradient></defs>
-            <g clip-path="url(#casOut)">
-              <image id="casArt" x="25" y="67" width="334" height="154" preserveAspectRatio="xMidYMid slice" opacity=".78"/>
-              <rect x="25" y="67" width="334" height="154" fill="url(#artScrim)"/>
-            </g>
-          </svg>
-
-          <svg viewBox="0 0 379 242" aria-hidden="true">
             <defs>
-              <clipPath id="casOut"><path clip-rule="evenodd" d="M27 69 L38 67 H354 L359 75 V206 L345 221 H38 L25 207 V75 Z M66 104 H317 A7 7 0 0 1 324 111 V157 A7 7 0 0 1 317 164 H66 A7 7 0 0 1 59 157 V111 A7 7 0 0 1 66 104 Z"/></clipPath>
+              <clipPath id="casOut"><path clip-rule="evenodd" d="M23.5 65.5 H352 L357 70.5 V206.5 L340 223.5 H35.5 L18.5 206.5 V70.5 Z M60 101 H319 L326 108 V160 L319 167 H60 L53 160 V108 Z"/></clipPath>
+              <linearGradient id="artScrim" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#000" stop-opacity=".72"/><stop offset=".3" stop-color="#000" stop-opacity=".24"/><stop offset=".68" stop-color="#000" stop-opacity=".24"/><stop offset="1" stop-color="#000" stop-opacity=".78"/></linearGradient>
             </defs>
-            <text id="casArtist" x="34" y="89.5" class="cas-label" font-size="20.5"></text>
-            <text id="casAlbum" x="348" y="89.5" text-anchor="end" class="cas-label" font-size="20.5"></text>
-            <text id="casTitle" x="192.5" y="206.5" text-anchor="middle" class="cas-label" font-size="21.5"></text>
-          </svg>
-
-          <!-- reels: sprites cut from the photo, spinning while music plays -->
-          <svg viewBox="0 0 379 242" aria-hidden="true">
-            <defs><clipPath id="casGlassClip"><rect x="63" y="108" width="255" height="51" rx="5"/></clipPath></defs>
-            <g clip-path="url(#casGlassClip)">
-              <g transform="translate(112.35 131.35)"><g class="spin"><image href="cassette-reel.webp" x="-42" y="-42" width="84" height="84"/></g></g>
-              <g transform="translate(270.3 129.74) rotate(37)"><g class="spin"><image href="cassette-reel.webp" x="-42" y="-42" width="84" height="84"/></g></g>
-              <circle id="casPackL" cx="112.35" cy="131.35" r="30" fill="none" stroke="#2a1f1a" stroke-opacity=".8" stroke-width="16"/>
-              <circle id="casRingL" cx="112.35" cy="131.35" r="38" fill="none" stroke="#e8ddd2" stroke-opacity=".25" stroke-width=".8"/>
-              <circle id="casPackR" cx="270.3" cy="129.74" r="30" fill="none" stroke="#2a1f1a" stroke-opacity=".8" stroke-width="16"/>
-              <circle id="casRingR" cx="270.3" cy="129.74" r="38" fill="none" stroke="#e8ddd2" stroke-opacity=".25" stroke-width=".8"/>
+            <g clip-path="url(#casOut)">
+              <image id="casArt" x="18.5" y="65.5" width="338.5" height="158" preserveAspectRatio="xMidYMid slice" opacity=".8"/>
+              <rect x="18.5" y="65.5" width="338.5" height="158" fill="url(#artScrim)"/>
             </g>
           </svg>
 
-          <!-- glass reflections and the squiggle printed on the window -->
+          <svg class="tint" viewBox="0 0 379 242" aria-hidden="true"><path id="casShell" fill="#000" d="M0 0"/></svg>
+
+          <!-- label text -->
+          <svg viewBox="0 0 379 242" aria-hidden="true">
+            <text id="casArtist" x="33" y="89.5" class="cas-label" font-size="20.5"></text>
+            <text id="casAlbum" x="343" y="89.5" text-anchor="end" class="cas-label" font-size="20.5"></text>
+            <text id="casTitle" x="188" y="206.5" text-anchor="middle" class="cas-label" font-size="21.5"></text>
+          </svg>
+
+          <!-- reels: sprites cut from the earlier photo, spinning while music plays -->
+          <svg viewBox="0 0 379 242" aria-hidden="true">
+            <defs><clipPath id="casGlassClip"><path d="M63.1 105 H314.7 L320.2 110.5 V155.6 L314.7 161.1 H63.1 L57.6 155.6 V110.5 Z"/></clipPath></defs>
+            <g clip-path="url(#casGlassClip)">
+              <g transform="translate(109.9 133)"><g class="spin"><image href="cassette-reel.webp" x="-42" y="-42" width="84" height="84"/></g></g>
+              <g transform="translate(267.9 133) rotate(37)"><g class="spin"><image href="cassette-reel.webp" x="-42" y="-42" width="84" height="84"/></g></g>
+              <circle id="casPackL" cx="109.9" cy="133" r="30" fill="none" stroke="#2a1f1a" stroke-opacity=".8" stroke-width="16"/>
+              <circle id="casRingL" cx="109.9" cy="133" r="38" fill="none" stroke="#e8ddd2" stroke-opacity=".25" stroke-width=".8"/>
+              <circle id="casPackR" cx="267.9" cy="133" r="30" fill="none" stroke="#2a1f1a" stroke-opacity=".8" stroke-width="16"/>
+              <circle id="casRingR" cx="267.9" cy="133" r="38" fill="none" stroke="#e8ddd2" stroke-opacity=".25" stroke-width=".8"/>
+            </g>
+          </svg>
+
+          <!-- glass reflections over the window -->
           <svg class="front" viewBox="0 0 379 242" aria-hidden="true">
             <defs>
-              <clipPath id="casGlassClip2"><rect x="63" y="108" width="255" height="51" rx="5"/></clipPath>
+              <clipPath id="casGlassClip2"><path d="M63.1 105 H314.7 L320.2 110.5 V155.6 L314.7 161.1 H63.1 L57.6 155.6 V110.5 Z"/></clipPath>
               <linearGradient id="gGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".45" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#9fb4c8" stop-opacity=".10"/></linearGradient>
             </defs>
             <g clip-path="url(#casGlassClip2)">
-              <rect x="63" y="108" width="255" height="51" fill="url(#gGlass)"/>
-              <path d="M63 108 H200 L172 134 H63 Z" fill="#fff" fill-opacity=".09"/>
-              <path d="M205 108 H222 L194 134 H177 Z" fill="#fff" fill-opacity=".05"/>
-              <path d="M288 159 H318 V138 Z" fill="#fff" fill-opacity=".06"/>
-              <g stroke="#fff" stroke-opacity=".15" stroke-width=".4" fill="none"><path d="M80 150 L125 134"/><path d="M215 118 L262 148"/><path d="M180 154 L194 146"/></g>
-              <rect x="63" y="108" width="255" height="51" rx="5" fill="none" stroke="#000" stroke-opacity=".45" stroke-width="3.5"/>
+              <rect x="57.6" y="105" width="262.6" height="56.1" fill="url(#gGlass)"/>
+              <path d="M58 105 H198 L170 133 H58 Z" fill="#fff" fill-opacity=".09"/>
+              <path d="M203 105 H220 L192 133 H175 Z" fill="#fff" fill-opacity=".05"/>
+              <path d="M290 161 H320 V140 Z" fill="#fff" fill-opacity=".06"/>
+              <g stroke="#fff" stroke-opacity=".15" stroke-width=".4" fill="none"><path d="M80 152 L125 136"/><path d="M215 120 L262 150"/><path d="M180 156 L194 148"/></g>
+              <path d="M63.1 105 H314.7 L320.2 110.5 V155.6 L314.7 161.1 H63.1 L57.6 155.6 V110.5 Z" fill="none" stroke="#000" stroke-opacity=".4" stroke-width="3.5"/>
             </g>
           </svg>
         </div>
@@ -713,7 +716,7 @@ function fitSvgText(el, text, maxW, size, min){
 function casDesign(artist, album, title){
   const a = (artist || "").trim(), b = (album || "").trim(), t = (title || "").trim();
   const wb = fitSvgText($("casAlbum"), b, 130, 20.5, 11);
-  fitSvgText($("casArtist"), a, 314 - (b ? wb + 22 : 0), 20.5, 11);
+  fitSvgText($("casArtist"), a, 310 - (b ? wb + 22 : 0), 20.5, 11);
   fitSvgText($("casTitle"), t, 300, 21.5, 12);
 }
 
@@ -763,13 +766,18 @@ function npTick(){
 
 /* ----- VU meters ----- */
 function buildVu(svg, label){
-  /* the meter face, glass and cover are images; only the needle is drawn here */
+  /* the meter face is an image; only the needle is drawn here, clipped so it comes out of the glow at the bottom edge */
   svg.setAttribute("viewBox", "0 0 300 190");
   svg.innerHTML = "";
+  const id = "vc" + label;
+  const defs = svgEl("defs", {}), cp = svgEl("clipPath", {id});
+  cp.append(svgEl("rect", {x:0, y:0, width:300, height:170.2}));
+  defs.append(cp); svg.append(defs);
+  const outer = svgEl("g", {"clip-path":`url(#${id})`});
   const needle = svgEl("g", {transform:"rotate(-48 150 172)"});
-  needle.append(svgEl("line", {x1:152, y1:175, x2:152, y2:62, stroke:"#000", "stroke-opacity":".22", "stroke-width":2.8, "stroke-linecap":"round"}));
-  needle.append(svgEl("line", {x1:150, y1:172, x2:150, y2:60, stroke:"#141414", "stroke-width":2.2, "stroke-linecap":"round"}));
-  svg.append(needle);
+  needle.append(svgEl("line", {x1:152, y1:175, x2:152, y2:62, stroke:"#000", "stroke-opacity":".28", "stroke-width":2.8, "stroke-linecap":"round"}));
+  needle.append(svgEl("line", {x1:150, y1:172, x2:150, y2:60, stroke:"#16110d", "stroke-width":2.2, "stroke-linecap":"round"}));
+  outer.append(needle); svg.append(outer);
   return needle;
 }
 
