@@ -244,6 +244,29 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 .cas .artlay{mix-blend-mode:normal}
 .vu-box{overflow:hidden}
 .keys{gap:0;width:fit-content;max-width:100%;align-self:center;justify-self:center;margin:0 auto;border-radius:6px;overflow:hidden;box-shadow:0 8px 20px rgba(0,0,0,.55),0 0 0 1px rgba(0,0,0,.7)}
+
+/* ---------- cassette-change flaps (sit behind the glass) ---------- */
+.flaps{position:absolute;inset:0;overflow:hidden;z-index:3;pointer-events:none}
+.flap{position:absolute;left:0;right:0;height:50.8%;
+  background:repeating-linear-gradient(180deg,rgba(255,255,255,.04) 0 1px,rgba(0,0,0,.22) 1px 7px),linear-gradient(rgba(6,7,9,.50),rgba(6,7,9,.74)),url(deck-bg.webp) center/cover no-repeat,#15171a;
+  transition:transform .78s cubic-bezier(.65,.02,.25,1)}
+.flap.top{top:0;transform:translateY(-103%);border-bottom:2px solid #040405;box-shadow:inset 0 -1px 0 rgba(255,255,255,.20),0 10px 18px rgba(0,0,0,.75)}
+.flap.bot{bottom:0;transform:translateY(103%);border-top:2px solid #040405;box-shadow:inset 0 1px 0 rgba(255,255,255,.20),0 -10px 18px rgba(0,0,0,.75)}
+.flaps.closed .flap.top,.flaps.closed .flap.bot{transform:translateY(0)}
+@media (prefers-reduced-motion: reduce){ .flap{transition:none} }
+
+/* ---------- subtler cassette text, tighter layout ---------- */
+.cas-label{fill:rgba(244,243,238,.66);stroke:rgba(0,0,0,.30);stroke-width:1.4px;letter-spacing:.015em}
+.faceplate{justify-content:flex-start;gap:0;padding-top:4.4rem;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 6rem)}
+.meters{margin-bottom:2rem}
+.bay{margin-bottom:1.9rem}
+.info{margin-bottom:1.4rem}
+.mic-sw[aria-pressed="true"] .led{background:#6b5a22;box-shadow:none}
+.mic-sw.live[aria-pressed="true"] .led{background:#47ff7a;box-shadow:0 0 .55rem #47ff7a}
+@media (orientation:landscape){
+  .faceplate{padding-top:3.4rem;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 4.4rem)}
+  .meters,.bay,.info{margin-bottom:0}
+}
 </style>
 </head>
 <body>
@@ -327,6 +350,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
             </g>
           </svg>
         </div>
+        <div id="flaps" class="flaps" aria-hidden="true"><div class="flap top"></div><div class="flap bot"></div></div>
         <div class="glass" aria-hidden="true"></div>
       </div>
       <div class="bay-foot"><i></i></div>
@@ -337,7 +361,6 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
         <button id="micBtn" class="mic-sw" aria-pressed="false" aria-label="Use the microphone for the meters"><i class="led"></i><span id="micTxt">SIM</span></button>
         <p class="np-time" id="npTime">0:00 / 0:00</p>
       </div>
-      <p class="np-track" id="npTrack"></p>
     </div>
 
     <div class="keys">
@@ -715,9 +738,9 @@ function fitSvgText(el, text, maxW, size, min){
 
 function casDesign(artist, album, title){
   const a = (artist || "").trim(), b = (album || "").trim(), t = (title || "").trim();
-  const wb = fitSvgText($("casAlbum"), b, 130, 20.5, 11);
-  fitSvgText($("casArtist"), a, 310 - (b ? wb + 22 : 0), 20.5, 11);
-  fitSvgText($("casTitle"), t, 300, 21.5, 12);
+  const wb = fitSvgText($("casAlbum"), b, 130, 18.5, 11);
+  fitSvgText($("casArtist"), a, 310 - (b ? wb + 22 : 0), 18.5, 11);
+  fitSvgText($("casTitle"), t, 300, 19.5, 12);
 }
 
 function setPack(side, r){
@@ -728,22 +751,62 @@ function setPack(side, r){
   ring.setAttribute("stroke-opacity", r > 22.5 ? ".25" : "0");
 }
 
+/* ================= cassette change: dark metal flaps close, the tape is swapped, then they open again ================= */
+let tapeSwap = false, micBusy = false;
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const reduceMotion = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+
+function applyTape(){
+  const connected = !!sp, has = !!spNow;
+  const art = has ? (spNow.artBig || spNow.art || "") : "";
+  npArtShown = art;
+  const ca = $("casArt"); if(art) ca.setAttribute("href", art); else ca.removeAttribute("href");
+  artTint(art).then(c => { if(art === npArtShown){ $("casShell").setAttribute("fill", labelColor(c)); setPlayerTint(c); } });
+  npTapeKey = has ? (spNow.album + "|" + spNow.title) : (connected ? "empty" : "off");
+  casDesign(has ? spNow.artist : "", has ? spNow.album : "", has ? spNow.title : (connected ? "No tape loaded" : "Not connected"));
+}
+
+async function changeTape(){
+  tapeSwap = true;
+  const fl = $("flaps");
+  fl.classList.add("closed"); vib(20);
+  await sleep(780);                                   // the flaps meet in the middle
+  applyTape();                                        // swap the cassette while it is hidden
+  await sleep(320);
+  const t0 = Date.now();
+  while(!(spNow && spNow.playing) && Date.now() - t0 < 4000) await sleep(150);   // open once the new song is playing
+  fl.classList.remove("closed");
+  await sleep(780);
+  tapeSwap = false;
+  npRender();
+}
+
+/* the microphone only listens while music is playing on the deck screen */
+async function micSync(){
+  const want = micOn && variant === "deck" && !!(spNow && spNow.playing);
+  if(want && !micStream && !micBusy){
+    micBusy = true;
+    const ok = await micStart();
+    micBusy = false;
+    if(!ok){ micOn = false; store.set("vuMic", false); updateMicButton(); toast("Couldn't use the microphone. Showing simulated needles."); }
+    else if(!(micOn && variant === "deck" && spNow && spNow.playing)) micStop();   // things changed while it was starting
+  }else if(!want && micStream){
+    micStop();
+  }
+  $("micBtn").classList.toggle("live", !!micStream);
+}
+
 function npRender(){
   const connected = !!sp, has = !!spNow, playing = !!(spNow && spNow.playing);
   $("npDlg").classList.toggle("playing", playing);
   const art = has ? (spNow.artBig || spNow.art || "") : "";
-  if(art !== npArtShown){
-    npArtShown = art;
-    const ca = $("casArt"); if(art) ca.setAttribute("href", art); else ca.removeAttribute("href");
-    artTint(art).then(c => { if(art === npArtShown){ $("casShell").setAttribute("fill", labelColor(c)); setPlayerTint(c); } });
-  }
   const tapeKey = has ? (spNow.album + "|" + spNow.title) : (connected ? "empty" : "off");
-  if(tapeKey !== npTapeKey){
-    npTapeKey = tapeKey;
-    casDesign(has ? spNow.artist : "", has ? spNow.album : "", has ? spNow.title : (connected ? "No tape loaded" : "Not connected"));
+  if(!tapeSwap && (tapeKey !== npTapeKey || art !== npArtShown)){
+    const hadTape = npTapeKey !== null && npTapeKey !== "empty" && npTapeKey !== "off";
+    if(hadTape && has && tapeKey !== npTapeKey && variant === "deck" && !reduceMotion()) changeTape();
+    else applyTape();
   }
-  $("npTrack").textContent = has ? (spNow.title + (spNow.artist ? " - " + spNow.artist : ""))
-    : (connected ? "Start playing in Spotify or press EJECT to pick a device." : "Press EJECT or the top-right gear to connect Spotify.");
+  micSync();
   $("npPlay").classList.toggle("latched", playing);
   $("npPause").classList.toggle("latched", has && !playing);
   $("npDlg").querySelectorAll(".key").forEach(k => { k.disabled = !connected && k.id !== "npEject"; });
@@ -848,11 +911,7 @@ function updateMicButton(){
 
 async function vuStart(){
   vuOn = true;
-  if(micOn){
-    const ok = await micStart();
-    if(!ok){ micOn = false; store.set("vuMic", false); toast("Couldn't use the microphone. Showing simulated needles."); }
-  }
-  updateMicButton();
+  updateMicButton(); micSync();
   if(vuOn && !vuRaf) vuRaf = requestAnimationFrame(vuFrame);
 }
 
@@ -952,10 +1011,10 @@ if(document.fonts && document.fonts.ready) document.fonts.ready.then(() => { npT
 $("micBtn").onclick = async () => {
   micOn = !micOn; store.set("vuMic", micOn);
   if(micOn){
-    const ok = await micStart();
+    const ok = await micStart();      // ask for permission now, while the person is tapping
     if(!ok){ micOn = false; store.set("vuMic", false); toast("Couldn't use the microphone. Check the permission and try again."); }
-  }else micStop();
-  updateMicButton();
+  }
+  updateMicButton(); micSync();       // it then only listens while music is playing
 };
 
 const keyAct = (id, fn) => { $(id).onclick = () => { vib(12); fn(); }; };
