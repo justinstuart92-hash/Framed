@@ -220,7 +220,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 .vu-box{position:relative;width:100%;aspect-ratio:300/190;border-radius:10px;box-shadow:0 6px 14px rgba(0,0,0,.6)}
 .vu-box img,.vu-box svg{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;-webkit-user-drag:none;pointer-events:none}
 .bay{padding:0;border-style:solid;border-color:transparent;border-width:42px 20px 42px 20px;border-image:url(deck-bay.webp) 84 40 84 40 fill / 42px 20px 42px 20px stretch;background:none;box-shadow:0 10px 24px rgba(0,0,0,.5);border-radius:10px}
-.bay-in{background:none;box-shadow:none;border-radius:0;padding:.5rem .3rem .6rem}
+.bay-in{background:none;box-shadow:none;border-radius:0;padding:.5rem .3rem .3rem}
 .bay-in::before,.bay-foot{display:none}
 .bay-in .cas{width:87%}
 .keycol{gap:0}
@@ -234,7 +234,7 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 .cas-label{paint-order:stroke;stroke:rgba(0,0,0,.55);stroke-width:2.6px;stroke-linejoin:round}
 .cas .artlay{mix-blend-mode:screen;pointer-events:none}
 @media (orientation:landscape){
-  .bay-in{padding:.4rem .3rem .5rem}
+  .bay-in{padding:.4rem .3rem .3rem}
   .bay-in .cas{width:69%}
   .key,.key:active,.key.latched{width:4rem}
 }
@@ -259,13 +259,15 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
 .cas-label{fill:rgba(244,243,238,.66);stroke:rgba(0,0,0,.30);stroke-width:1.4px;letter-spacing:.015em}
 .faceplate{justify-content:flex-start;gap:0;padding-top:4.4rem;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 6rem)}
 .meters{margin-bottom:2rem}
-.bay{margin-bottom:1.9rem}
-.info{margin-bottom:1.4rem}
+.bay{margin-bottom:.8rem}
+.keys{margin-bottom:1.2rem}
+.info{margin-bottom:0}
 .mic-sw[aria-pressed="true"] .led{background:#6b5a22;box-shadow:none}
 .mic-sw.live[aria-pressed="true"] .led{background:#47ff7a;box-shadow:0 0 .55rem #47ff7a}
 @media (orientation:landscape){
   .faceplate{padding-top:3.4rem;padding-bottom:calc(env(safe-area-inset-bottom, 0px) + 4.4rem)}
-  .meters,.bay,.info{margin-bottom:0}
+  .meters,.bay,.info,.keys{margin-bottom:0}
+  .faceplate{grid-template-areas:"meters bay" "meters keys" "meters info"}
 }
 </style>
 </head>
@@ -356,19 +358,19 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
       <div class="bay-foot"><i></i></div>
     </div>
 
-    <div class="info">
-      <div class="readout">
-        <button id="micBtn" class="mic-sw" aria-pressed="false" aria-label="Use the microphone for the meters"><i class="led"></i><span id="micTxt">SIM</span></button>
-        <p class="np-time" id="npTime">0:00 / 0:00</p>
-      </div>
-    </div>
-
     <div class="keys">
       <div class="keycol"><button id="npPrev" class="key" aria-label="Previous track"></button></div>
       <div class="keycol"><button id="npNext" class="key" aria-label="Next track"></button></div>
       <div class="keycol"><button id="npPlay" class="key" aria-label="Play"></button></div>
       <div class="keycol"><button id="npPause" class="key" aria-label="Pause"></button></div>
       <div class="keycol"><button id="npEject" class="key" aria-label="Spotify &amp; device settings"></button></div>
+    </div>
+
+    <div class="info">
+      <div class="readout">
+        <button id="micBtn" class="mic-sw" aria-pressed="false" aria-label="Use the microphone for the meters"><i class="led"></i><span id="micTxt">SIM</span></button>
+        <p class="np-time" id="npTime">0:00 / 0:00</p>
+      </div>
     </div>
   </div>
 
