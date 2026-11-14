@@ -269,6 +269,12 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
   .meters,.bay,.info,.keys{margin-bottom:0}
   .faceplate{grid-template-areas:"meters bay" "meters keys" "meters info"}
 }
+
+/* ---------- tape change: reels hold still behind the flaps; sound settings ---------- */
+.np.swapping .spin{animation-play-state:paused !important}
+.dlg label.chk{flex-direction:row;align-items:center;gap:.6rem}
+.dlg label.chk input{width:1.3rem;height:1.3rem;accent-color:#f0c24f}
+.dlg input[type=range]{width:100%;accent-color:#f0c24f}
 </style>
 </head>
 <body>
@@ -421,6 +427,13 @@ dialog::backdrop{background:rgba(10,18,26,.65)}
         <span class="grow"></span>
         <button id="spConn" class="primary">Connect Spotify</button>
       </div>
+    </div>
+
+    <div class="sect">
+      <h4>Deck sounds</h4>
+      <label class="chk"><input id="sndOn" type="checkbox"> Play cassette deck sounds</label>
+      <label>Volume<input id="sndVol" type="range" min="0" max="100" step="5"></label>
+      <div class="actions"><span class="hint">Try:</span><button id="sndKey" class="secondary">Key</button><button id="sndFlap" class="secondary">Flaps</button><button id="sndRoll" class="secondary">Roll</button></div>
     </div>
 
     <div class="actions"><span class="grow"></span><button id="setClose" class="primary">Done</button></div>
@@ -616,6 +629,7 @@ async function spControl(action){
 
 /* ================= settings dialog ================= */
 function refreshSettings(){
+  $("sndOn").checked = store.get("deckSound", true); $("sndVol").value = Math.round(store.get("deckVol", .7) * 100);
   $("devSect").hidden = !sp;
   $("spStatus").textContent = !spCid() ? "Paste your Spotify client ID below, then tap Connect Spotify."
     : sp ? "Connected. Playback control needs Spotify Premium." : "Not connected.";
@@ -758,6 +772,123 @@ let tapeSwap = false, micBusy = false;
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const reduceMotion = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 
+/* ================= deck sounds: synthesised in the browser, so there are no audio files to upload ================= */
+const SFX = (() => {
+  let ctx = null, master = null;
+  const pref = { get on(){ return store.get("deckSound", true); }, get vol(){ return store.get("deckVol", .7); } };
+  const noiseOf = c => c.__nz || (c.__nz = (() => { const b = c.createBuffer(1, c.sampleRate * 2, c.sampleRate), d = b.getChannelData(0); for(let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; return b; })());
+  const env = (g, t, a, peak, d) => { g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(peak, 0.0002), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); };
+
+  function noise(c, out, t, o){                       // a burst of filtered noise
+    const s = c.createBufferSource(); s.buffer = noiseOf(c); s.loop = true;
+    const f = c.createBiquadFilter(); f.type = o.type || "bandpass"; f.Q.value = o.q || 1;
+    f.frequency.setValueAtTime(o.f, t); if(o.f2) f.frequency.exponentialRampToValueAtTime(o.f2, t + o.a + o.d);
+    const g = c.createGain(); env(g, t, o.a, o.gain, o.d);
+    s.connect(f); f.connect(g); g.connect(out); s.start(t, Math.random()); s.stop(t + o.a + o.d + .05);
+  }
+  function tone(c, out, t, o){                        // a pitched thump or ring
+    const osc = c.createOscillator(); osc.type = o.type || "sine";
+    osc.frequency.setValueAtTime(o.f, t); if(o.f2) osc.frequency.exponentialRampToValueAtTime(o.f2, t + o.a + o.d);
+    const g = c.createGain(); env(g, t, o.a, o.gain, o.d);
+    osc.connect(g); g.connect(out); osc.start(t); osc.stop(t + o.a + o.d + .05);
+  }
+  function whirr(c, out, t, dur, f1, f2, gain){       // a small motor spinning up or down
+    const osc = c.createOscillator(); osc.type = "sawtooth";
+    osc.frequency.setValueAtTime(f1, t); osc.frequency.exponentialRampToValueAtTime(f2, t + dur);
+    const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.Q.value = 2;
+    lp.frequency.setValueAtTime(260, t); lp.frequency.exponentialRampToValueAtTime(900, t + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(gain, t + dur * .3); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    const lfo = c.createOscillator(); lfo.frequency.value = 9; const lg = c.createGain(); lg.gain.value = Math.min(f1, f2) * .03; lfo.connect(lg); lg.connect(osc.frequency);
+    osc.connect(lp); lp.connect(g); g.connect(out);
+    osc.start(t); lfo.start(t); osc.stop(t + dur + .05); lfo.stop(t + dur + .05);
+  }
+  const click = (c, o, t, v = 1) => noise(c, o, t, {a:.0008, d:.012, gain:.5*v, type:"highpass", f:2600, q:.7});
+  const thunk = (c, o, t, v = 1, f = 110) => { tone(c, o, t, {f:f*1.6, f2:f*.5, a:.002, d:.11, gain:.9*v}); noise(c, o, t, {a:.001, d:.06, gain:.35*v, type:"lowpass", f:520, q:.6}); };
+  const clack = (c, o, t, v = 1) => { click(c, o, t, v); noise(c, o, t, {a:.001, d:.045, gain:.3*v, type:"bandpass", f:1900, q:3.5}); };
+  const ring  = (c, o, t, v = 1, f = 1250) => { tone(c, o, t, {f, a:.001, d:.22, gain:.08*v}); tone(c, o, t, {f:f*2.31, a:.001, d:.14, gain:.05*v}); };
+
+  const sounds = {
+    /* a piano key going down: a clack, a thump, and a little of the mechanism behind it */
+    keyDown(c, o, t, kind){
+      const v = {play:1, eject:1, rew:.85, ff:.85, pause:.75}[kind] || .8;
+      thunk(c, o, t, .9*v, kind === "eject" ? 80 : 115);
+      clack(c, o, t, .85*v);
+      if(kind === "play"){
+        ring(c, o, t + .004, .7, 1180);                    // the spring in the mechanism
+        whirr(c, o, t + .035, .55, 48, 92, .18);           // the motor engages
+        thunk(c, o, t + .11, .35, 140);                    // the pinch roller seats
+      }else if(kind === "rew" || kind === "ff"){
+        const up = kind === "ff";
+        whirr(c, o, t + .02, .42, up ? 150 : 330, up ? 330 : 150, .13);                                    // a quick spool of the reels
+        noise(c, o, t + .02, {a:.05, d:.36, gain:.10, type:"bandpass", f: up ? 1800 : 3200, f2: up ? 3200 : 1800, q:2});
+      }else if(kind === "eject"){
+        ring(c, o, t + .01, .9, 1500);
+        thunk(c, o, t + .08, .6, 100);
+        clack(c, o, t + .12, .5);
+      }
+    },
+    /* the key coming back up */
+    keyUp(c, o, t, kind){
+      click(c, o, t, kind === "play" ? .22 : .35);
+      noise(c, o, t, {a:.001, d:.03, gain:.12, type:"bandpass", f:1400, q:3});
+      if(kind === "eject") thunk(c, o, t + .01, .25, 150);
+    },
+    /* two metal plates slide together and meet with a clank */
+    flapClose(c, o, t){
+      click(c, o, t, .6);
+      noise(c, o, t + .03, {a:.12, d:.62, gain:.22, type:"bandpass", f:520, f2:1500, q:1.4});
+      whirr(c, o, t + .02, .7, 60, 110, .10);
+      thunk(c, o, t + .74, 1.0, 70);
+      noise(c, o, t + .74, {a:.001, d:.16, gain:.28, type:"bandpass", f:640, q:9});
+      ring(c, o, t + .745, .8, 430);
+      click(c, o, t + .78, .5);
+    },
+    /* the same plates sliding apart, a little lighter */
+    flapOpen(c, o, t){
+      click(c, o, t, .55); thunk(c, o, t + .01, .35, 150);
+      noise(c, o, t + .05, {a:.12, d:.60, gain:.20, type:"bandpass", f:1500, f2:520, q:1.4});
+      whirr(c, o, t + .03, .7, 110, 60, .09);
+      thunk(c, o, t + .76, .6, 85);
+      noise(c, o, t + .76, {a:.001, d:.12, gain:.18, type:"bandpass", f:700, q:8});
+      ring(c, o, t + .765, .4, 520);
+    },
+    /* the cassette seats, the motor spins up, the tape starts to roll */
+    tapeRoll(c, o, t){
+      thunk(c, o, t, .7, 95); click(c, o, t + .004, .5); clack(c, o, t + .02, .35);
+      whirr(c, o, t + .06, 1.1, 36, 104, .24);
+      tone(c, o, t + .1, {f:300, f2:470, a:.4, d:.7, gain:.025});
+      noise(c, o, t + .2, {a:.5, d:.9, gain:.045, type:"highpass", f:4500, q:.5});
+    }
+  };
+
+  function ensure(){
+    if(!ctx){
+      const AC = window.AudioContext || window.webkitAudioContext; if(!AC) return null;
+      ctx = new AC(); master = ctx.createGain();
+      const comp = ctx.createDynamicsCompressor(); master.connect(comp); comp.connect(ctx.destination);
+    }
+    master.gain.value = Math.min(1, Math.max(0, pref.vol)) * .9;
+    if(ctx.state === "suspended") ctx.resume().catch(() => {});
+    return ctx;
+  }
+  const api = {
+    trace: null,
+    unlock(){ ensure(); },                                  // call from a tap so the browser allows sound
+    play(name, arg){
+      if(api.trace) api.trace(name, arg);
+      if(!pref.on || document.visibilityState !== "visible") return;
+      const c = ensure(); if(!c || c.state !== "running") return;   // never queue sounds that would play late
+      try{ sounds[name](c, master, c.currentTime + .015, arg); }catch(e){}
+    },
+    async render(name, arg, seconds){                       // offline render, used for checking levels
+      const oc = new OfflineAudioContext(1, Math.ceil(44100 * (seconds || 2)), 44100);
+      sounds[name](oc, oc.destination, .01, arg);
+      return (await oc.startRendering()).getChannelData(0);
+    }
+  };
+  return api;
+})();
+
 function applyTape(){
   const connected = !!sp, has = !!spNow;
   const art = has ? (spNow.artBig || spNow.art || "") : "";
@@ -768,17 +899,35 @@ function applyTape(){
   casDesign(has ? spNow.artist : "", has ? spNow.album : "", has ? spNow.title : (connected ? "No tape loaded" : "Not connected"));
 }
 
-async function changeTape(){
+let lastEndPoll = 0, endGuard = {key:null, t:0};   // endGuard stops the flaps re-closing on a song that has already finished
+/* closes the flaps (early, at the end of a song, or when the song was skipped), swaps the cassette while hidden, then reopens */
+async function tapeSequence(reason){
+  if(tapeSwap) return;
   tapeSwap = true;
-  const fl = $("flaps");
-  fl.classList.add("closed"); vib(20);
+  const np = $("npDlg"), fl = $("flaps");
+  const startKey = npTapeKey, keyNow = () => spNow ? (spNow.album + "|" + spNow.title) : null;
+  np.classList.add("swapping");                       // the reels hold still behind the flaps
+  fl.classList.add("closed"); SFX.play("flapClose"); vib(20);
   await sleep(780);                                   // the flaps meet in the middle
-  applyTape();                                        // swap the cassette while it is hidden
+  if(reason === "end"){                               // closed early: wait for the next song to begin
+    const t0 = Date.now();
+    while(Date.now() - t0 < 5000){
+      const k = keyNow();
+      const restarted = !!(spNow && spNow.playing && spNow.pos < 4000 && Date.now() - t0 > 500 && k === startKey);
+      if((k && k !== startKey && spNow.playing) || restarted) break;
+      await sleep(120);
+    }
+  }
+  applyTape();                                        // swap the label and cover while nothing can be seen
   await sleep(320);
-  const t0 = Date.now();
-  while(!(spNow && spNow.playing) && Date.now() - t0 < 4000) await sleep(150);   // open once the new song is playing
-  fl.classList.remove("closed");
-  await sleep(780);
+  const t1 = Date.now(), waitPlay = reason === "end" ? 1500 : 4000;
+  while(!(spNow && spNow.playing) && Date.now() - t1 < waitPlay) await sleep(150);   // open once the new song is playing
+  fl.classList.remove("closed"); SFX.play("flapOpen");
+  await sleep(560);
+  np.classList.remove("swapping");                    // the reels start to turn again
+  if(spNow && spNow.playing) SFX.play("tapeRoll");    // the new tape starts rolling
+  await sleep(300);
+  if(reason === "end") endGuard = {key: npTapeKey, t: Date.now()};
   tapeSwap = false;
   npRender();
 }
@@ -805,7 +954,7 @@ function npRender(){
   const tapeKey = has ? (spNow.album + "|" + spNow.title) : (connected ? "empty" : "off");
   if(!tapeSwap && (tapeKey !== npTapeKey || art !== npArtShown)){
     const hadTape = npTapeKey !== null && npTapeKey !== "empty" && npTapeKey !== "off";
-    if(hadTape && has && tapeKey !== npTapeKey && variant === "deck" && !reduceMotion()) changeTape();
+    if(hadTape && has && tapeKey !== npTapeKey && variant === "deck" && !reduceMotion() && document.visibilityState === "visible") tapeSequence("skip");
     else applyTape();
   }
   micSync();
@@ -827,6 +976,11 @@ function npTick(){
   setPack("R", 22 + 16 * p);
   $("npTime").textContent = fmtMs(pos) + " / " + fmtMs(dur);
   if(variant === "player") plProgress();
+  if(variant === "deck" && !tapeSwap && spNow && spNow.playing && dur > 8000 && !reduceMotion() && document.visibilityState === "visible"){
+    const left = dur - pos;
+    if(left < 6000 && Date.now() - lastEndPoll > 1500){ lastEndPoll = Date.now(); spPoll(); }   // check closely as the song ends
+    if(left <= 1000 && !(endGuard.key === npTapeKey && Date.now() - endGuard.t < 20000)) tapeSequence("end");
+  }
 }
 
 /* ----- VU meters ----- */
@@ -1025,6 +1179,21 @@ keyAct("npNext", () => spControl("next"));
 keyAct("npPlay", () => { if(!(spNow && spNow.playing)) spControl("toggle"); });
 keyAct("npPause", () => { if(spNow && spNow.playing) spControl("toggle"); });
 keyAct("npEject", openSettings);
+
+/* deck key sounds: the clack on the way down, a lighter tick on the way up */
+[["npPrev","rew"],["npNext","ff"],["npPlay","play"],["npPause","pause"],["npEject","eject"]].forEach(([id, kind]) => {
+  const el = $(id);
+  el.addEventListener("pointerdown", () => { if(!el.disabled) SFX.play("keyDown", kind); });
+  el.addEventListener("pointerup", () => { if(!el.disabled) SFX.play("keyUp", kind); });
+});
+addEventListener("pointerdown", () => SFX.unlock(), {capture:true, passive:true});   // the first tap lets the browser play sound
+
+$("sndOn").onchange = e => { store.set("deckSound", e.target.checked); if(e.target.checked){ SFX.unlock(); SFX.play("keyDown", "pause"); } };
+$("sndVol").oninput = e => store.set("deckVol", Number(e.target.value) / 100);
+$("sndVol").onchange = () => { SFX.unlock(); SFX.play("keyDown", "pause"); };
+$("sndKey").onclick = () => { SFX.unlock(); SFX.play("keyDown", "play"); setTimeout(() => SFX.play("keyUp", "play"), 160); };
+$("sndFlap").onclick = () => { SFX.unlock(); SFX.play("flapClose"); setTimeout(() => SFX.play("flapOpen"), 1200); };
+$("sndRoll").onclick = () => { SFX.unlock(); SFX.play("tapeRoll"); };
 
 /* variant switch and the Spotify-style player controls */
 $("toPlayer").onclick = () => setVariant("player");
